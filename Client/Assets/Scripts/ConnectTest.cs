@@ -1,11 +1,12 @@
-﻿using DefaultNamespace;
+﻿using System;
+using DefaultNamespace;
 using UnityEngine;
 
 public class ConnectTest : MonoBehaviour
 {
-    private TcpClient _client;
-    private TcpServer _server;
+    private ITcp tcp;
     private string text = "";
+    private string content = "";
 
     private void OnGUI()
     {
@@ -19,46 +20,72 @@ public class ConnectTest : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        tcp?.Close(true);
+    }
+
     private void GUIText()
     {
-        text = GUI.TextField(new Rect(160, 20, 200, 60), text);
+        text = GUI.TextField(new Rect(180, 46, 420, 40), text);
+        GUI.Label(new Rect(180, 100, 420, 320), content);
     }
 
     private void EditorGUI()
     {
         GUIText();
-        if (GUI.Button(new Rect(20, 20, 120, 60), "Adb Forward"))
+        if (GUI.Button(new Rect(40, 40, 120, 60), "AdbForward"))
         {
             AdbForward();
         }
-        if (GUI.Button(new Rect(20, 100, 120, 60), "Connect"))
+        if (GUI.Button(new Rect(40, 120, 120, 60), "Connect"))
         {
-            _client = new TcpClient("127.0.0.1", ADBExecutor.HOST_PORT);
+            tcp = new TcpClient("127.0.0.1", ADBExecutor.HOST_PORT, OnRecvMsg);
         }
-        if (GUI.Button(new Rect(20, 180, 120, 60), "Send"))
+        if (GUI.Button(new Rect(40, 200, 120, 60), "Send"))
         {
-            _client?.SendMsg("client " + text);
+            tcp?.SendMsg(text);
+            text = string.Empty;
         }
-        if (GUI.Button(new Rect(20, 260, 120, 60), "Close"))
+        if (GUI.Button(new Rect(40, 280, 120, 60), "Close"))
         {
-            _client?.Close();
+            tcp?.Close(true);
+        }
+    }
+
+    private void OnRecvMsg(string msg, TcpState state)
+    {
+        if (!string.IsNullOrEmpty(msg.Trim()))
+        {
+            var pref = "";
+            switch (state)
+            {
+                case TcpState.Send:
+                    pref = "send";
+                    break;
+                case TcpState.Recv:
+                    pref = "recv";
+                    break;
+            }
+            content += DateTime.Now.ToString("t") + pref + ": " + msg + "\n";
         }
     }
 
     private void AndroidGUI()
     {
         GUIText();
-        if (GUI.Button(new Rect(20, 20, 120, 60), "Listening"))
+        if (GUI.Button(new Rect(40, 40, 120, 60), "Listening"))
         {
-            _server = new TcpServer("127.0.0.1", ADBExecutor.ANDROID_PORT);
+            tcp = new TcpServer("127.0.0.1", ADBExecutor.ANDROID_PORT, OnRecvMsg);
         }
-        if (GUI.Button(new Rect(20, 100, 120, 60), "Send"))
+        if (GUI.Button(new Rect(40, 120, 120, 60), "Send"))
         {
-            _server?.SendMsg("server " + text);
+            tcp?.SendMsg("server " + text);
+            text = string.Empty;
         }
-        if (GUI.Button(new Rect(20, 180, 120, 60), "Close"))
+        if (GUI.Button(new Rect(40, 200, 120, 60), "Close"))
         {
-            _server?.Close();
+            tcp?.Close(true);
         }
     }
 

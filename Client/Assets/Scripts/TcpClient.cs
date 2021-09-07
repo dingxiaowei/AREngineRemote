@@ -6,14 +6,15 @@ using System.Threading;
 using DefaultNamespace;
 using UnityEngine;
 
-public class TcpClient
+public class TcpClient:ITcp
 {
     private Socket socketClient;
     private Thread threadClient;
+    private Action<string, TcpState> callback;
     private static readonly byte[] m_oRecvBuff = new byte[1024 * 1024];
     private AddressFamily m_NetworkType = AddressFamily.InterNetwork;
 
-    public TcpClient(string ip, int port)
+    public TcpClient(string ip, int port, Action<string, TcpState> notify)
     {
         GetNetworkType(ip);
         try
@@ -21,6 +22,7 @@ public class TcpClient
             Debug.Log("start tid: " + Thread.CurrentThread.ManagedThreadId);
             socketClient = new Socket(m_NetworkType, SocketType.Stream, ProtocolType.Tcp);
             socketClient.NoDelay = true;
+            callback = notify;
             Connect(ip, port);
         }
         catch (Exception ex)
@@ -68,10 +70,16 @@ public class TcpClient
                 int length = socketClient.Receive(m_oRecvBuff);
                 string strRecMsg = Encoding.UTF8.GetString(m_oRecvBuff, 0, length);
                 Debug.Log(socketClient.RemoteEndPoint + " " + DateTime.Now + "\n" + strRecMsg);
+                callback(strRecMsg, TcpState.Recv);
+                if (strRecMsg == "\\q")
+                {
+                    callback("connect quit", TcpState.Quit);
+                    Close(false);
+                }
             }
             catch (Exception ex)
             {
-                Debug.LogError("远程服务器已中断连接！" + ex);
+                Debug.LogError("server disconnect！" + ex);
                 break;
             }
         }
@@ -81,21 +89,29 @@ public class TcpClient
     {
         try
         {
-            byte[] arrClientSendMsg = Encoding.UTF8.GetBytes(sendMsg);
-            socketClient.Send(arrClientSendMsg);
-            Debug.Log(DateTime.Now + " send: " + sendMsg);
+            if (!string.IsNullOrEmpty(sendMsg))
+            {
+                byte[] arrClientSendMsg = Encoding.UTF8.GetBytes(sendMsg);
+                socketClient.Send(arrClientSendMsg);
+                Debug.Log(DateTime.Now + " send: " + sendMsg);
+                callback(sendMsg, TcpState.Send);
+            }
         }
         catch (Exception ex)
         {
-            Debug.LogError("远程服务器已中断连接,无法发送消息！：" + ex);
+            Debug.LogError("server disconnect！：" + ex);
         }
     }
 
-    public void Close()
+    public void Close(bool notify)
     {
         if (socketClient == null) return;
         try
         {
+            if (notify)
+            {
+                SendMsg("\\q");
+            }
             socketClient.Close();
             threadClient.Abort();
         }

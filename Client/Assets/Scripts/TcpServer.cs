@@ -5,16 +5,18 @@ using System.Text;
 using System.Threading;
 using UnityEngine;
 
-public class TcpServer
+public class TcpServer : ITcp
 {
     private Thread threadWatch;
     private Socket socketWatch;
     private Socket sockConnection;
+    private Action<string, TcpState> callback;
     static readonly byte[] recvBuf = new byte[1024 * 1024];
 
-    public TcpServer(string ip, int port)
+    public TcpServer(string ip, int port, Action<string, TcpState> notify)
     {
         socketWatch = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        callback = notify;
         IPAddress ipaddress = IPAddress.Parse(ip);
         IPEndPoint endpoint = new IPEndPoint(ipaddress, port);
         socketWatch.Bind(endpoint);
@@ -33,7 +35,7 @@ public class TcpServer
             try
             {
                 sockConnection = socketWatch.Accept();
-                Debug.Log("recv address:" + sockConnection.RemoteEndPoint);
+                callback("connect:" + sockConnection.RemoteEndPoint, TcpState.Connect);
                 Thread thr = new Thread(ServerRecMsg);
                 thr.IsBackground = true;
                 thr.Start(sockConnection);
@@ -44,7 +46,7 @@ public class TcpServer
             }
         }
     }
-    
+
     private void ServerRecMsg(object socketClientPara)
     {
         Socket socketServer = socketClientPara as Socket;
@@ -52,17 +54,21 @@ public class TcpServer
         {
             try
             {
-                //将接收到的信息存入到内存缓冲区, 并返回其字节数组的长度
                 int length = socketServer.Receive(recvBuf);
                 string strSRecMsg = Encoding.UTF8.GetString(recvBuf, 0, length);
                 if (strSRecMsg.Length != 0)
                 {
                     Debug.Log(socketServer.RemoteEndPoint + " " + DateTime.Now + ": " + strSRecMsg);
+                    callback(strSRecMsg, TcpState.Recv);
+                    if (strSRecMsg == "\\q")
+                    {
+                        Close(false);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                Debug.LogError(socketServer.RemoteEndPoint + " disconnect "+ex);
+                Debug.LogError(socketServer.RemoteEndPoint + " disconnect " + ex);
                 break;
             }
         }
@@ -72,8 +78,12 @@ public class TcpServer
     {
         try
         {
-            var arrSendMsg = Encoding.UTF8.GetBytes(sendMsg);
-            sockConnection.Send(arrSendMsg);
+            if (!string.IsNullOrEmpty(sendMsg))
+            {
+                callback("send " + sendMsg, TcpState.Send);
+                var arrSendMsg = Encoding.UTF8.GetBytes(sendMsg);
+                sockConnection.Send(arrSendMsg);
+            }
         }
         catch (Exception ex)
         {
@@ -81,10 +91,11 @@ public class TcpServer
         }
     }
 
-    public void Close()
+    public void Close(bool notify)
     {
         try
         {
+            if (notify) SendMsg("\\q");
             socketWatch.Close();
             sockConnection.Close();
             threadWatch.Abort();
