@@ -16,5 +16,7 @@ pc通过usb连接Android手机， 然后通过adb forward建立端口转发。
 * 之后点击Send就可以互发消息了。
 
 
+## 效果
 
+![](.github/adb3.jpg)
 
