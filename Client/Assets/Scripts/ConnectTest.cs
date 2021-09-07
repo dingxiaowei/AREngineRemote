@@ -61,13 +61,13 @@ public class ConnectTest : MonoBehaviour
             switch (state)
             {
                 case TcpState.Send:
-                    pref = "send";
+                    pref = " send: ";
                     break;
                 case TcpState.Recv:
-                    pref = "recv";
+                    pref = " recv: ";
                     break;
             }
-            content += DateTime.Now.ToString("t") + pref + ": " + msg + "\n";
+            content += DateTime.Now.ToString("t") + pref + msg + "\n";
         }
     }
 
