@@ -4,9 +4,17 @@ using UnityEngine;
 
 public class ConnectTest : MonoBehaviour
 {
-    private ITcp tcp;
+    private TcpBase tcp;
     private string text = "";
     private string content = "";
+
+    private void Start()
+    {
+        if (!Application.isEditor && tcp == null)
+        {
+            tcp = new TcpServer("127.0.0.1", ADBExecutor.ANDROID_PORT, OnRecvMsg);
+        }
+    }
 
     private void OnGUI()
     {
@@ -18,6 +26,11 @@ public class ConnectTest : MonoBehaviour
         {
             AndroidGUI();
         }
+    }
+
+    private void Update()
+    {
+        tcp?.Update();
     }
 
     private void OnDestroy()
@@ -44,7 +57,7 @@ public class ConnectTest : MonoBehaviour
         }
         if (GUI.Button(new Rect(40, 200, 120, 60), "Send"))
         {
-            tcp?.SendMsg(text);
+            tcp?.Send(text);
             text = string.Empty;
         }
         if (GUI.Button(new Rect(40, 280, 120, 60), "Close"))
@@ -74,14 +87,14 @@ public class ConnectTest : MonoBehaviour
     private void AndroidGUI()
     {
         GUIText();
-        if (GUI.Button(new Rect(40, 40, 120, 60), "Listening"))
+        if (GUI.Button(new Rect(40, 40, 120, 60), "Send"))
         {
-            tcp = new TcpServer("127.0.0.1", ADBExecutor.ANDROID_PORT, OnRecvMsg);
-        }
-        if (GUI.Button(new Rect(40, 120, 120, 60), "Send"))
-        {
-            tcp?.SendMsg("server " + text);
+            tcp?.Send("server " + text);
             text = string.Empty;
+        }
+        if (GUI.Button(new Rect(40, 120, 120, 60), "Preview"))
+        {
+            (tcp as TcpServer).AcquireCpuImage();
         }
         if (GUI.Button(new Rect(40, 200, 120, 60), "Close"))
         {

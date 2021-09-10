@@ -8,7 +8,7 @@ namespace DefaultNamespace
     {
         public const int ANDROID_PORT = 30000;
         public const int HOST_PORT = 35000;
-        public const string adb = @"~/Documents/software/eclipse/android-sdks/platform-tools/adb";
+        public const string adb = @"adb";
 
         private static string AdbExec(string command)
         {
@@ -43,7 +43,7 @@ namespace DefaultNamespace
             string str_device_id = device_id_list[1];
             Debug.Log(str_device_id);
             var str_device_id_parts = str_device_id.Split('\t');
-            if (str_device_id_parts[1].Equals("device"))
+            if (str_device_id_parts[1].StartsWith("device"))
             {
                 var device = str_device_id_parts[0];
                 Debug.Log(device);
