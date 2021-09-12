@@ -4,6 +4,7 @@
     using HuaweiARUnitySDK;
     using UnityEngine;
     using HuaweiARInternal;
+
     public class PointcloudVisualizer : MonoBehaviour
     {
         private const int k_maxPointCount = 2000;
@@ -12,6 +13,7 @@
 
         private List<Vector3> m_points = new List<Vector3>();
         private List<int> m_pointIndex = new List<int>();
+
         public void Start()
         {
             m_mesh = GetComponent<MeshFilter>().mesh;
@@ -20,6 +22,7 @@
 
         public void Update()
         {
+#if !UNITY_EDITOR
             // Do not update if huaweiAR is not tracking.
             if (ARFrame.GetTrackingState() != ARTrackable.TrackingState.TRACKING)
             {
@@ -44,6 +47,7 @@
                 m_mesh.vertices = m_points.ToArray();
                 m_mesh.SetIndices(m_pointIndex.ToArray(), MeshTopology.Points, 0);
             }
+#endif
         }
     }
 }

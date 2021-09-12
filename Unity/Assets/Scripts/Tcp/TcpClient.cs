@@ -5,7 +5,6 @@ using System.Threading;
 using HuaweiARUnitySDK;
 using UnityEngine;
 
-
 /// <summary>
 /// 运行在Editor中
 /// </summary>
@@ -13,7 +12,8 @@ public class TcpClient : TcpBase
 {
     private BackGroundRenderer renderer;
     private Texture2D texY, texUV;
-    
+    private Mesh pointCloudMesh;
+
     public TcpClient(string ip, int port, Action<string, TcpState> notify)
     {
         try
@@ -22,6 +22,8 @@ public class TcpClient : TcpBase
             sock.NoDelay = true;
             callback = notify;
             renderer = GameObject.FindObjectOfType<BackGroundRenderer>();
+            pointCloudMesh = GameObject.FindObjectOfType<MeshFilter>().mesh;
+            pointCloudMesh.Clear();
             Connect(ip, port);
         }
         catch (Exception ex)
@@ -61,6 +63,33 @@ public class TcpClient : TcpBase
             UpdatePreview();
             prev_change = false;
         }
+        if (point_change)
+        {
+            UpdatePointCloud();
+            point_change = false;
+        }
+    }
+
+    private void UpdatePointCloud()
+    {
+        int len = ar_point.len;
+        if (len > 1)
+        {
+            Vector3[] points = new Vector3[len];
+            int[] indexs = new int[len];
+            for (int i = 0; i < len; i++)
+            {
+                int offset = 12 * i;
+                points[i] = RecvVector3(ar_point.buf, offset);
+                indexs[i] = i;
+            }
+            pointCloudMesh.Clear();
+            pointCloudMesh.vertices = points;
+            pointCloudMesh.SetIndices(indexs, MeshTopology.Points, 0);
+            var transform = MainCamera.transform;
+            transform.position = ar_point.camPos;
+            transform.eulerAngles = ar_point.camAngle;
+        }
     }
 
     private void UpdatePreview()
@@ -92,5 +121,4 @@ public class TcpClient : TcpBase
         }
         sock = null;
     }
-    
 }

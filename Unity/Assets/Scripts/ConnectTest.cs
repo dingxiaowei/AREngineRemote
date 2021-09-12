@@ -1,4 +1,5 @@
 ﻿using System;
+using Common;
 using DefaultNamespace;
 using UnityEngine;
 
@@ -11,12 +12,15 @@ public class ConnectTest : MonoBehaviour
         if (!Application.isEditor && tcp == null)
         {
             tcp = new TcpServer("127.0.0.1", ADBExecutor.ANDROID_PORT, OnRecvMsg);
+            gameObject.AddComponent<PointcloudVisualizer>();
         }
     }
 
     private void Update()
     {
         tcp?.Update();
+        if (Input.GetKeyUp(KeyCode.Space))
+            Connect();
     }
 
     private void OnRecvMsg(string msg, TcpState state)
@@ -37,7 +41,6 @@ public class ConnectTest : MonoBehaviour
         }
     }
 
-
     [ContextMenu("adb forward")]
     private void AdbForward()
     {
@@ -57,11 +60,30 @@ public class ConnectTest : MonoBehaviour
     {
         tcp?.Send("ping...");
     }
-    
-    
+
     [ContextMenu("close")]
     private void OnDestroy()
     {
         tcp?.Close(true);
+    }
+
+    [ContextMenu("point cloud")]
+    private void TestPointCloud()
+    {
+        var mesh = GetComponent<MeshFilter>().sharedMesh;
+        Vector3[] points = new Vector3[1];
+        int[] indexs = new int[1];
+        for (int i = 0; i < 1; i++)
+        {
+            for (int j = 0; j < 1; j++)
+            {
+                int idx = i * 8 + j;
+                points[idx] = new Vector3(i - 4, j - 4, 0);
+                indexs[idx] = idx;
+            }
+        }
+        mesh.Clear();
+        mesh.vertices = points;
+        mesh.SetIndices(indexs, MeshTopology.Points, 0);
     }
 }

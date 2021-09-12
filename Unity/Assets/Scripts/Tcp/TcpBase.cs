@@ -8,26 +8,37 @@ public class TcpBase
 {
     protected const int headLen = 5;
     protected const int bufSize = 1024 * 1024; // 1M
+    public const int max_point = 1000;
+    protected const int scale_point = 1000;
     protected AREngineImage ar_image = new AREngineImage();
+    protected AREnginePointCloud ar_point = new AREnginePointCloud();
     protected Action<string, TcpState> callback;
     protected const SocketFlags flag = SocketFlags.None;
-
-    protected volatile bool prev_change;
+    protected volatile bool prev_change, point_change;
     protected byte[] recvBuf = new byte[bufSize];
     protected byte[] sendBuf = new byte[bufSize];
     protected Socket sock;
-
     protected Thread thread;
 
-    public virtual void Update()
+    private Camera camera;
+
+    protected Camera MainCamera
     {
+        get
+        {
+            if (camera == null)
+                camera = Camera.main;
+            return camera;
+        }
     }
+
+    public virtual void Update() { }
 
     public virtual void Close(bool notify)
     {
         if (notify) NotifyQuit();
-        sock.Close();
         thread.Abort();
+        sock.Close();
     }
 
     protected void SendWithHead(TcpHead head, int len)
@@ -42,9 +53,10 @@ public class TcpBase
     protected void Recv(Socket socket)
     {
         while (true)
+        {
             try
             {
-                var len = socket.Receive(recvBuf,0, bufSize, flag);
+                var len = socket.Receive(recvBuf, 0, bufSize, flag);
                 if (len > 0)
                 {
                     int packLen = Bytes2Int(recvBuf, 0);
@@ -60,6 +72,7 @@ public class TcpBase
                 Debug.LogError(socket.RemoteEndPoint + " disconnect " + ex);
                 break;
             }
+        }
     }
 
     public void Send(string sendMsg)
@@ -84,7 +97,6 @@ public class TcpBase
         SendWithHead(TcpHead.Quit, 0);
     }
 
-
     protected byte[] Int2Bytes(int value)
     {
         var src = new byte[4];
@@ -97,10 +109,8 @@ public class TcpBase
 
     protected int Bytes2Int(byte[] src, int offset)
     {
-        return (src[offset] & 0xFF)
-               | ((src[offset + 1] & 0xFF) << 8)
-               | ((src[offset + 2] & 0xFF) << 16)
-               | ((src[offset + 3] & 0xFF) << 24);
+        return (src[offset] & 0xFF) | ((src[offset + 1] & 0xFF) << 8) | ((src[offset + 2] & 0xFF) << 16) |
+               ((src[offset + 3] & 0xFF) << 24);
     }
 
     protected void Process(int length)
@@ -124,6 +134,14 @@ public class TcpBase
                 Array.Copy(recvBuf, 12 + headLen + y_len, ar_image.uv_buf, 0, uv_len);
                 prev_change = true;
                 break;
+            case TcpHead.CloudPoint:
+                ar_point.camPos = RecvVector3(recvBuf, headLen);
+                ar_point.camAngle = RecvVector3(recvBuf, headLen + 12);
+                int cnt = Bytes2Int(recvBuf, headLen + 24);
+                ar_point.len = cnt;
+                Array.Copy(recvBuf, 28 + headLen, ar_point.buf, 0, 12 * cnt);
+                point_change = true;
+                break;
             case TcpHead.String:
                 var strRecMsg = Encoding.UTF8.GetString(recvBuf, headLen, length - headLen);
                 Debug.Log(sock.RemoteEndPoint + " " + DateTime.Now + "\n" + strRecMsg);
@@ -138,6 +156,23 @@ public class TcpBase
                 break;
         }
     }
+
+    protected Vector3 RecvVector3(byte[] buf, int offset)
+    {
+        int x = Bytes2Int(buf, offset);
+        int y = Bytes2Int(buf, offset + 4);
+        int z = Bytes2Int(buf, offset + 8);
+        return new Vector3(x, y, z) / scale_point;
+    }
+    
+}
+
+public class AREnginePointCloud
+{
+    public int len;
+    public Vector3 camPos;
+    public Vector3 camAngle;
+    public byte[] buf = new byte[TcpBase.max_point * 12];
 }
 
 public class AREngineImage

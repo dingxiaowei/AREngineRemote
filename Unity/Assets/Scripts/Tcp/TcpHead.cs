@@ -44,7 +44,12 @@ public enum TcpHead
     Quit = 0x1,
 
     /// <summary>
-    /// 发送预览流
+    /// 预览流
     /// </summary>
     Preview = 0x2,
+    
+    /// <summary>
+    /// 点云
+    /// </summary>
+    CloudPoint = 0x3
 }
