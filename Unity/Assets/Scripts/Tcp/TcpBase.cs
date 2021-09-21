@@ -12,9 +12,10 @@ public class TcpBase
     protected const int scale_point = 1000;
     protected AREngineImage ar_image = new AREngineImage();
     protected AREnginePointCloud ar_point = new AREnginePointCloud();
+    protected AREnginePlane ar_plane = new AREnginePlane();
     protected Action<string, TcpState> callback;
     protected const SocketFlags flag = SocketFlags.None;
-    protected volatile bool prev_change, point_change;
+    protected volatile bool prev_change, point_change, plane_change;
     protected byte[] recvBuf = new byte[bufSize];
     protected byte[] sendBuf = new byte[bufSize];
     protected Socket sock;
@@ -142,6 +143,34 @@ public class TcpBase
                 Array.Copy(recvBuf, 28 + headLen, ar_point.buf, 0, 12 * cnt);
                 point_change = true;
                 break;
+            case TcpHead.Plane:
+                int count = Bytes2Int(recvBuf, headLen);
+                ar_plane.planes = new AREngineVectices[count];
+                for (int i = 0; i < count; i++)
+                {
+                    var p = new AREngineVectices();
+                    ar_plane.planes[i] = p;
+                    int cnt1 = Bytes2Int(recvBuf, headLen + 4);
+                    if (cnt1 > 0)
+                    {
+                        p.meshVertices3D = new Vector3[cnt1];
+                        int cnt2 = Bytes2Int(recvBuf, headLen + 8);
+                        int offset = headLen + 12;
+                        for (int j = 0; j < cnt1; j++)
+                        {
+                            p.meshVertices3D[i] = RecvVector3(recvBuf, offset);
+                            offset += 12;
+                        }
+                        for (int j = 0; j < cnt2; j++)
+                        {
+                            p.meshVertices2D[i] = RecvVector2(recvBuf, offset);
+                            offset += 8;
+                        }
+                    }
+                    else
+                        continue;
+                }
+                break;
             case TcpHead.String:
                 var strRecMsg = Encoding.UTF8.GetString(recvBuf, headLen, length - headLen);
                 Debug.Log(sock.RemoteEndPoint + " " + DateTime.Now + "\n" + strRecMsg);
@@ -164,7 +193,13 @@ public class TcpBase
         int z = Bytes2Int(buf, offset + 8);
         return new Vector3(x, y, z) / scale_point;
     }
-    
+
+    protected Vector2 RecvVector2(byte[] buf, int offset)
+    {
+        int x = Bytes2Int(buf, offset);
+        int y = Bytes2Int(buf, offset + 4);
+        return new Vector2(x, y) / scale_point;
+    }
 }
 
 public class AREnginePointCloud
@@ -185,4 +220,15 @@ public class AREngineImage
         width = w;
         height = h;
     }
+}
+
+public class AREngineVectices
+{
+    public Vector3[] meshVertices3D;
+    public Vector2[] meshVertices2D;
+}
+
+public class AREnginePlane
+{
+    public AREngineVectices[] planes;
 }

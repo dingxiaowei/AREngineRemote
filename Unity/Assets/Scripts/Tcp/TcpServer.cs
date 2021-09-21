@@ -57,6 +57,7 @@ public class TcpServer : TcpBase
             {
                 AcquireCpuImage();
                 AcquireCloudPoint();
+                AcquirePlanes();
                 lastT = Time.time;
             }
         }
@@ -104,7 +105,6 @@ public class TcpServer : TcpBase
                 var transform = MainCamera.transform;
                 var pos = transform.position;
                 var angle = transform.eulerAngles;
-                var projectionMatrix = ARSession.GetProjectionMatrix(MainCamera.nearClipPlane, MainCamera.farClipPlane);
                 WriteVector3(pos, headLen);
                 WriteVector3(angle, headLen + 12);
                 cnt = points.Count;
@@ -119,16 +119,71 @@ public class TcpServer : TcpBase
         }
     }
 
+    private void AcquirePlanes()
+    {
+        List<ARPlane> newPlanes = new List<ARPlane>();
+        ARFrame.GetTrackables(newPlanes, ARTrackableQueryFilter.NEW);
+        int cnt = newPlanes.Count;
+        WriteInt32(cnt, headLen);
+        int offset = headLen + 4;
+        for (int i = 0; i < cnt; i++)
+        {
+            var plane = newPlanes[i];
+            if (plane.GetTrackingState() == ARTrackable.TrackingState.TRACKING)
+            {
+                List<Vector3> meshVertices3D = new List<Vector3>();
+                List<Vector2> meshVertices2D = new List<Vector2>();
+                plane.GetPlanePolygon(meshVertices3D);
+                plane.GetPlanePolygon(ref meshVertices2D);
+                WriteInt32(meshVertices3D.Count, offset);
+                offset += 4;
+                WriteInt32(meshVertices2D.Count, offset);
+                offset += 4;
+                for (int j = 0; j < meshVertices3D.Count; j++)
+                {
+                    WriteVector3(meshVertices3D[j], offset);
+                    offset += 12;
+                }
+                for (int j = 0; j < meshVertices2D.Count; j++)
+                {
+                    WriteVector2(meshVertices2D[j], offset);
+                    offset += 8;
+                }
+            }
+            else
+            {
+                WriteInt32(-1, offset);
+                offset += 4;
+            }
+        }
+        if (cnt > 0)
+            SendWithHead(TcpHead.Plane, offset - headLen);
+    }
+
+    private void WriteVector2(Vector2 v, int offset)
+    {
+        int x = (int) (v.x * scale_point);
+        int y = (int) (v.y * scale_point);
+        WriteInt32(x, offset);
+        WriteInt32(y, offset + 4);
+    }
+
     private void WriteVector3(Vector3 v, int offset)
     {
         int x = (int) (v.x * scale_point);
         int y = (int) (v.y * scale_point);
         int z = (int) (v.z * scale_point);
-        Array.Copy(Int2Bytes(x), 0, sendBuf, offset, 4);
-        Array.Copy(Int2Bytes(y), 0, sendBuf, offset + 4, 4);
-        Array.Copy(Int2Bytes(z), 0, sendBuf, offset + 8, 4);
+        WriteInt32(x, offset);
+        WriteInt32(y, offset + 4);
+        WriteInt32(z, offset + 8);
     }
-    
+
+    private void WriteInt32(int v, int offset)
+    {
+        var bytes = Int2Bytes(v);
+        Array.Copy(bytes, 0, sendBuf, offset, 4);
+    }
+
     private void AcquireCpuImage()
     {
         var image = ARFrame.AcquireCameraImageBytes();
@@ -141,12 +196,9 @@ public class TcpServer : TcpBase
     private void SendPreview(int width, int height, IntPtr ptr)
     {
         int len = (int) (width * height * 1.5f);
-        var b1 = Int2Bytes(width);
-        var b2 = Int2Bytes(height);
-        var b3 = Int2Bytes(len);
-        Array.Copy(b1, 0, sendBuf, headLen, 4);
-        Array.Copy(b2, 0, sendBuf, 4 + headLen, 4);
-        Array.Copy(b3, 0, sendBuf, 8 + headLen, 4);
+        WriteInt32(width, headLen);
+        WriteInt32(height, headLen + 4);
+        WriteInt32(len, headLen + 8);
         Marshal.Copy(ptr, sendBuf, 12 + headLen, len);
         SendWithHead(TcpHead.Preview, len + 12);
     }

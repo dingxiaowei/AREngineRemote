@@ -51,5 +51,10 @@ public enum TcpHead
     /// <summary>
     /// 点云
     /// </summary>
-    CloudPoint = 0x3
+    CloudPoint = 0x3,
+    
+    /// <summary>
+    /// 平面
+    /// </summary>
+    Plane = 0x4,
 }
