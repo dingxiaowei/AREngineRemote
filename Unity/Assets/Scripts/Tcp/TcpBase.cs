@@ -155,7 +155,13 @@ public class TcpBase
                     {
                         p.meshVertices3D = new Vector3[cnt1];
                         int cnt2 = Bytes2Int(recvBuf, headLen + 8);
+                        p.meshVertices2D = new Vector2[cnt2];
                         int offset = headLen + 12;
+                        var pos = RecvVector3(recvBuf, offset);
+                        offset += 12;
+                        var rot = RecvRot(recvBuf, offset);
+                        offset += 16;
+                        p.pose = new Pose(pos, rot);
                         for (int j = 0; j < cnt1; j++)
                         {
                             p.meshVertices3D[i] = RecvVector3(recvBuf, offset);
@@ -184,6 +190,15 @@ public class TcpBase
                 Debug.Log("not process " + head);
                 break;
         }
+    }
+
+    protected Quaternion RecvRot(byte[] buf, int offset)
+    {
+        float x = Bytes2Int(buf, offset) / (float) scale_point;
+        float y = Bytes2Int(buf, offset + 4) / (float) scale_point;
+        float z = Bytes2Int(buf, offset + 8) / (float) scale_point;
+        float w = Bytes2Int(buf, offset + 12) / (float) scale_point;
+        return new Quaternion(x, y, z, w);
     }
 
     protected Vector3 RecvVector3(byte[] buf, int offset)
@@ -226,6 +241,7 @@ public class AREngineVectices
 {
     public Vector3[] meshVertices3D;
     public Vector2[] meshVertices2D;
+    public Pose pose = Pose.identity;
 }
 
 public class AREnginePlane

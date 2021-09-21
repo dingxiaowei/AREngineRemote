@@ -68,6 +68,11 @@ public class TcpClient : TcpBase
             UpdatePointCloud();
             point_change = false;
         }
+        if (plane_change)
+        {
+            UpdatePlane();
+            plane_change = true;
+        }
     }
 
     private void UpdatePointCloud()
@@ -90,6 +95,11 @@ public class TcpClient : TcpBase
             transform.position = ar_point.camPos;
             transform.eulerAngles = ar_point.camAngle;
         }
+    }
+
+    private void UpdatePlane()
+    {
+        
     }
 
     private void UpdatePreview()

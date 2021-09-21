@@ -139,6 +139,13 @@ public class TcpServer : TcpBase
                 offset += 4;
                 WriteInt32(meshVertices2D.Count, offset);
                 offset += 4;
+                
+                var pose = plane.GetCenterPose();
+                WriteVector3(pose.position, offset);
+                offset += 12;
+                WriteRot(pose.rotation, offset);
+                offset += 16;
+                
                 for (int j = 0; j < meshVertices3D.Count; j++)
                 {
                     WriteVector3(meshVertices3D[j], offset);
@@ -176,6 +183,18 @@ public class TcpServer : TcpBase
         WriteInt32(x, offset);
         WriteInt32(y, offset + 4);
         WriteInt32(z, offset + 8);
+    }
+
+    private void WriteRot(Quaternion v, int offset)
+    {
+        int x = (int) (v.x * scale_point);
+        int y = (int) (v.y * scale_point);
+        int z = (int) (v.z * scale_point);
+        int w = (int) (v.w * scale_point);
+        WriteInt32(x, offset);
+        WriteInt32(y, offset + 4);
+        WriteInt32(z, offset + 8);
+        WriteInt32(w, offset + 12);
     }
 
     private void WriteInt32(int v, int offset)
