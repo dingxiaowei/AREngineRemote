@@ -67,7 +67,7 @@ public class TcpServer : TcpBase
             try
             {
                 sock = socketWatch.Accept();
-                callback("connect:" + sock.RemoteEndPoint, TcpState.Connect);
+                callback(" connect:" + sock.RemoteEndPoint, TcpState.Connect);
                 state = TcpState.Connect;
                 rcvThread = new Thread(Receive);
                 rcvThread.IsBackground = true;
@@ -119,17 +119,23 @@ public class TcpServer : TcpBase
         }
     }
 
+    private List<ARPlane> planes =new List<ARPlane>();
+
     private void AcquirePlanes()
     {
         List<ARPlane> newPlanes = new List<ARPlane>();
         ARFrame.GetTrackables(newPlanes, ARTrackableQueryFilter.NEW);
         int cnt = newPlanes.Count;
+        if (cnt > 0) planes.AddRange(newPlanes);
+        cnt = planes.Count;
         WriteInt32(cnt, headLen);
         int offset = headLen + 4;
         for (int i = 0; i < cnt; i++)
         {
-            var plane = newPlanes[i];
-            if (plane.GetTrackingState() == ARTrackable.TrackingState.TRACKING)
+            var plane = planes[i];
+            var st = plane.GetTrackingState();
+            Debug.Log("new track plane: " + st);
+            if (st == ARTrackable.TrackingState.TRACKING)
             {
                 List<Vector3> meshVertices3D = new List<Vector3>();
                 List<Vector2> meshVertices2D = new List<Vector2>();
@@ -158,7 +164,9 @@ public class TcpServer : TcpBase
             }
         }
         if (cnt > 0)
+        {
             SendWithHead(TcpHead.Plane, offset - headLen);
+        }
     }
 
     private void WriteVector2(Vector2 v, ref int offset)

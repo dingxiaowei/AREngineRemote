@@ -49,11 +49,19 @@ namespace DefaultNamespace
             }
             return null;
         }
-        
+
         public void AdbSingleDevicePortForward(String device_id)
         {
-            Debug.Log("adb -s " + device_id + " forward tcp:" + HOST_PORT + " tcp:" + ANDROID_PORT);
-            AdbExec("-s " + device_id + " forward tcp:" + HOST_PORT + " tcp:" + ANDROID_PORT);
+            if (string.IsNullOrEmpty(device_id.Trim()))
+            {
+                Debug.Log("adb forward tcp:" + HOST_PORT + " tcp:" + ANDROID_PORT);
+                AdbExec(" forward tcp:" + HOST_PORT + " tcp:" + ANDROID_PORT);
+            }
+            else
+            {
+                Debug.Log("adb -s " + device_id + " forward tcp:" + HOST_PORT + " tcp:" + ANDROID_PORT);
+                AdbExec("-s " + device_id + " forward tcp:" + HOST_PORT + " tcp:" + ANDROID_PORT);
+            }
         }
     }
 }

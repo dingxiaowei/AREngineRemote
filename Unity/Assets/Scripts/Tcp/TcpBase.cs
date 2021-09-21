@@ -173,6 +173,7 @@ public class TcpBase
                         }
                     }
                 }
+                plane_change = true;
                 break;
             case TcpHead.String:
                 var strRecMsg = Encoding.UTF8.GetString(recvBuf, headLen, length - headLen);

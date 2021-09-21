@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -39,7 +40,7 @@ public class TcpClient : TcpBase
             var ipaddress = IPAddress.Parse(ip);
             var endpoint = new IPEndPoint(ipaddress, port);
             sock.Connect(endpoint);
-            callback("connect server success", TcpState.Connect);
+            callback(" connect server success", TcpState.Connect);
             thread = new Thread(Receive);
             thread.IsBackground = true;
             thread.Start();
@@ -47,7 +48,7 @@ public class TcpClient : TcpBase
         catch (Exception ex)
         {
             Debug.LogError(ex);
-            callback("connect failed", TcpState.Connect);
+            callback(" connect failed", TcpState.Connect);
         }
     }
 
@@ -99,7 +100,7 @@ public class TcpClient : TcpBase
 
     private void UpdatePlane()
     {
-        
+        Debug.Log("plane length: " + ar_plane.planes.Length);
     }
 
     private void UpdatePreview()
