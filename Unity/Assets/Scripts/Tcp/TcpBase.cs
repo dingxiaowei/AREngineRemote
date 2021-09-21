@@ -6,21 +6,21 @@ using UnityEngine;
 
 public class TcpBase
 {
+    public const int max_point = 1000;
     protected const int headLen = 5;
     protected const int bufSize = 1024 * 1024; // 1M
-    public const int max_point = 1000;
     protected const int scale_point = 1000;
+    protected const SocketFlags flag = SocketFlags.None;
     protected AREngineImage ar_image = new AREngineImage();
     protected AREnginePointCloud ar_point = new AREnginePointCloud();
     protected AREnginePlane ar_plane = new AREnginePlane();
     protected Action<string, TcpState> callback;
-    protected const SocketFlags flag = SocketFlags.None;
     protected volatile bool prev_change, point_change, plane_change;
+    protected volatile bool threadRun = true;
     protected byte[] recvBuf = new byte[bufSize];
     protected byte[] sendBuf = new byte[bufSize];
     protected Socket sock;
     protected Thread thread;
-
     private Camera camera;
 
     protected Camera MainCamera
@@ -38,7 +38,8 @@ public class TcpBase
     public virtual void Close(bool notify)
     {
         if (notify) NotifyQuit();
-        thread.Abort();
+        // thread.Abort();
+        threadRun = false;
         sock.Close();
     }
 
@@ -53,7 +54,7 @@ public class TcpBase
 
     protected void Recv(Socket socket)
     {
-        while (true)
+        while (threadRun)
         {
             try
             {
@@ -116,6 +117,7 @@ public class TcpBase
 
     protected void Process(int length)
     {
+        int offset = 0;
         var head = (TcpHead) recvBuf[4];
         switch (head)
         {
@@ -136,9 +138,10 @@ public class TcpBase
                 prev_change = true;
                 break;
             case TcpHead.CloudPoint:
-                ar_point.camPos = RecvVector3(recvBuf, headLen);
-                ar_point.camAngle = RecvVector3(recvBuf, headLen + 12);
-                int cnt = Bytes2Int(recvBuf, headLen + 24);
+                offset = headLen;
+                ar_point.camPos = RecvVector3(recvBuf, ref offset);
+                ar_point.camAngle = RecvVector3(recvBuf, ref offset);
+                int cnt = Bytes2Int(recvBuf, offset);
                 ar_point.len = cnt;
                 Array.Copy(recvBuf, 28 + headLen, ar_point.buf, 0, 12 * cnt);
                 point_change = true;
@@ -156,25 +159,19 @@ public class TcpBase
                         p.meshVertices3D = new Vector3[cnt1];
                         int cnt2 = Bytes2Int(recvBuf, headLen + 8);
                         p.meshVertices2D = new Vector2[cnt2];
-                        int offset = headLen + 12;
-                        var pos = RecvVector3(recvBuf, offset);
-                        offset += 12;
-                        var rot = RecvRot(recvBuf, offset);
-                        offset += 16;
+                        offset = headLen + 12;
+                        var pos = RecvVector3(recvBuf, ref offset);
+                        var rot = RecvRot(recvBuf, ref offset);
                         p.pose = new Pose(pos, rot);
                         for (int j = 0; j < cnt1; j++)
                         {
-                            p.meshVertices3D[i] = RecvVector3(recvBuf, offset);
-                            offset += 12;
+                            p.meshVertices3D[i] = RecvVector3(recvBuf, ref offset);
                         }
                         for (int j = 0; j < cnt2; j++)
                         {
-                            p.meshVertices2D[i] = RecvVector2(recvBuf, offset);
-                            offset += 8;
+                            p.meshVertices2D[i] = RecvVector2(recvBuf, ref offset);
                         }
                     }
-                    else
-                        continue;
                 }
                 break;
             case TcpHead.String:
@@ -192,27 +189,30 @@ public class TcpBase
         }
     }
 
-    protected Quaternion RecvRot(byte[] buf, int offset)
+    protected Quaternion RecvRot(byte[] buf, ref int offset)
     {
         float x = Bytes2Int(buf, offset) / (float) scale_point;
         float y = Bytes2Int(buf, offset + 4) / (float) scale_point;
         float z = Bytes2Int(buf, offset + 8) / (float) scale_point;
         float w = Bytes2Int(buf, offset + 12) / (float) scale_point;
+        offset += 16;
         return new Quaternion(x, y, z, w);
     }
 
-    protected Vector3 RecvVector3(byte[] buf, int offset)
+    protected Vector3 RecvVector3(byte[] buf, ref int offset)
     {
         int x = Bytes2Int(buf, offset);
         int y = Bytes2Int(buf, offset + 4);
         int z = Bytes2Int(buf, offset + 8);
+        offset += 12;
         return new Vector3(x, y, z) / scale_point;
     }
 
-    protected Vector2 RecvVector2(byte[] buf, int offset)
+    protected Vector2 RecvVector2(byte[] buf, ref int offset)
     {
         int x = Bytes2Int(buf, offset);
         int y = Bytes2Int(buf, offset + 4);
+        offset += 8;
         return new Vector2(x, y) / scale_point;
     }
 }

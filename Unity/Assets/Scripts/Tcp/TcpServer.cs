@@ -38,9 +38,7 @@ public class TcpServer : TcpBase
         try
         {
             state = TcpState.Quit;
-            rcvThread.Abort();
             base.Close(notify);
-            socketWatch.Close();
         }
         catch (Exception e)
         {
@@ -74,6 +72,7 @@ public class TcpServer : TcpBase
                 rcvThread = new Thread(Receive);
                 rcvThread.IsBackground = true;
                 rcvThread.Start(sock);
+                threadRun = true;
             }
             catch (Exception ex)
             {
@@ -105,14 +104,15 @@ public class TcpServer : TcpBase
                 var transform = MainCamera.transform;
                 var pos = transform.position;
                 var angle = transform.eulerAngles;
-                WriteVector3(pos, headLen);
-                WriteVector3(angle, headLen + 12);
+                int offset = headLen;
+                WriteVector3(pos, ref offset);
+                WriteVector3(angle, ref offset);
                 cnt = points.Count;
-                Array.Copy(Int2Bytes(cnt), 0, sendBuf, headLen + 24, 4);
+                WriteInt32(cnt, offset);
+                offset += 4;
                 for (int i = 0; i < cnt; i++)
                 {
-                    int offset = 12 * i + headLen + 28;
-                    WriteVector3(points[i], offset);
+                    WriteVector3(points[i], ref offset);
                 }
                 SendWithHead(TcpHead.CloudPoint, 28 + 12 * cnt);
             }
@@ -139,22 +139,16 @@ public class TcpServer : TcpBase
                 offset += 4;
                 WriteInt32(meshVertices2D.Count, offset);
                 offset += 4;
-                
                 var pose = plane.GetCenterPose();
-                WriteVector3(pose.position, offset);
-                offset += 12;
-                WriteRot(pose.rotation, offset);
-                offset += 16;
-                
+                WriteVector3(pose.position, ref offset);
+                WriteRot(pose.rotation, ref offset);
                 for (int j = 0; j < meshVertices3D.Count; j++)
                 {
-                    WriteVector3(meshVertices3D[j], offset);
-                    offset += 12;
+                    WriteVector3(meshVertices3D[j], ref offset);
                 }
                 for (int j = 0; j < meshVertices2D.Count; j++)
                 {
-                    WriteVector2(meshVertices2D[j], offset);
-                    offset += 8;
+                    WriteVector2(meshVertices2D[j], ref offset);
                 }
             }
             else
@@ -167,15 +161,16 @@ public class TcpServer : TcpBase
             SendWithHead(TcpHead.Plane, offset - headLen);
     }
 
-    private void WriteVector2(Vector2 v, int offset)
+    private void WriteVector2(Vector2 v, ref int offset)
     {
         int x = (int) (v.x * scale_point);
         int y = (int) (v.y * scale_point);
         WriteInt32(x, offset);
         WriteInt32(y, offset + 4);
+        offset += 8;
     }
 
-    private void WriteVector3(Vector3 v, int offset)
+    private void WriteVector3(Vector3 v, ref int offset)
     {
         int x = (int) (v.x * scale_point);
         int y = (int) (v.y * scale_point);
@@ -183,9 +178,10 @@ public class TcpServer : TcpBase
         WriteInt32(x, offset);
         WriteInt32(y, offset + 4);
         WriteInt32(z, offset + 8);
+        offset += 12;
     }
 
-    private void WriteRot(Quaternion v, int offset)
+    private void WriteRot(Quaternion v, ref int offset)
     {
         int x = (int) (v.x * scale_point);
         int y = (int) (v.y * scale_point);
@@ -195,6 +191,7 @@ public class TcpServer : TcpBase
         WriteInt32(y, offset + 4);
         WriteInt32(z, offset + 8);
         WriteInt32(w, offset + 12);
+        offset += 16;
     }
 
     private void WriteInt32(int v, int offset)

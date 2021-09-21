@@ -82,10 +82,10 @@ public class TcpClient : TcpBase
         {
             Vector3[] points = new Vector3[len];
             int[] indexs = new int[len];
+            int offset = 0;
             for (int i = 0; i < len; i++)
             {
-                int offset = 12 * i;
-                points[i] = RecvVector3(ar_point.buf, offset);
+                points[i] = RecvVector3(ar_point.buf, ref offset);
                 indexs[i] = i;
             }
             pointCloudMesh.Clear();
