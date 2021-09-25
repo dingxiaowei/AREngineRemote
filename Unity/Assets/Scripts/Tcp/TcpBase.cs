@@ -61,7 +61,7 @@ public class TcpBase
                 var len = socket.Receive(recvBuf, 0, bufSize, flag);
                 if (len > 0)
                 {
-                    int packLen = Bytes2Int(recvBuf, 0);
+                    int packLen = Bytes2Int(recvBuf);
                     while (len < packLen)
                     {
                         len += socket.Receive(recvBuf, len, bufSize - len, flag);
@@ -109,10 +109,17 @@ public class TcpBase
         return src;
     }
 
-    protected int Bytes2Int(byte[] src, int offset)
+    protected int Bytes2Int(byte[] src)
     {
-        return (src[offset] & 0xFF) | ((src[offset + 1] & 0xFF) << 8) | ((src[offset + 2] & 0xFF) << 16) |
-               ((src[offset + 3] & 0xFF) << 24);
+        return (src[0] & 0xFF) | ((src[1] & 0xFF) << 8) | ((src[2] & 0xFF) << 16) | ((src[3] & 0xFF) << 24);
+    }
+
+    protected int Bytes2Int(byte[] src, ref int offset)
+    {
+        int v = (src[offset] & 0xFF) | ((src[offset + 1] & 0xFF) << 8) | ((src[offset + 2] & 0xFF) << 16) |
+                ((src[offset + 3] & 0xFF) << 24);
+        offset += 4;
+        return v;
     }
 
     protected void Process(int length)
@@ -122,10 +129,11 @@ public class TcpBase
         switch (head)
         {
             case TcpHead.Preview:
-                var width = Bytes2Int(recvBuf, headLen);
-                var heigth = Bytes2Int(recvBuf, 4 + headLen);
+                offset = headLen;
+                var width = Bytes2Int(recvBuf, ref offset);
+                var heigth = Bytes2Int(recvBuf, ref offset);
                 ar_image.Set(width, heigth);
-                var len = Bytes2Int(recvBuf, 8 + headLen);
+                var len = Bytes2Int(recvBuf, ref offset);
                 var y_len = len * 2 / 3;
                 var uv_len = len / 3;
                 if (ar_image.y_buf == null)
@@ -133,33 +141,33 @@ public class TcpBase
                     ar_image.y_buf = new byte[y_len];
                     ar_image.uv_buf = new byte[uv_len];
                 }
-                Array.Copy(recvBuf, 12 + headLen, ar_image.y_buf, 0, y_len);
-                Array.Copy(recvBuf, 12 + headLen + y_len, ar_image.uv_buf, 0, uv_len);
+                Array.Copy(recvBuf, offset, ar_image.y_buf, 0, y_len);
+                Array.Copy(recvBuf, offset + y_len, ar_image.uv_buf, 0, uv_len);
                 prev_change = true;
                 break;
             case TcpHead.CloudPoint:
                 offset = headLen;
                 ar_point.camPos = RecvVector3(recvBuf, ref offset);
                 ar_point.camAngle = RecvVector3(recvBuf, ref offset);
-                int cnt = Bytes2Int(recvBuf, offset);
+                int cnt = Bytes2Int(recvBuf, ref offset);
                 ar_point.len = cnt;
-                Array.Copy(recvBuf, 28 + headLen, ar_point.buf, 0, 12 * cnt);
+                Array.Copy(recvBuf, offset, ar_point.buf, 0, 12 * cnt);
                 point_change = true;
                 break;
             case TcpHead.Plane:
-                int count = Bytes2Int(recvBuf, headLen);
+                offset = headLen;
+                int count = Bytes2Int(recvBuf, ref offset);
                 ar_plane.planes = new AREngineVectices[count];
                 for (int i = 0; i < count; i++)
                 {
                     var p = new AREngineVectices();
                     ar_plane.planes[i] = p;
-                    int cnt1 = Bytes2Int(recvBuf, headLen + 4);
+                    int cnt1 = Bytes2Int(recvBuf, ref offset);
                     if (cnt1 > 0)
                     {
                         p.meshVertices3D = new Vector3[cnt1];
-                        int cnt2 = Bytes2Int(recvBuf, headLen + 8);
+                        int cnt2 = Bytes2Int(recvBuf, ref offset);
                         p.meshVertices2D = new Vector2[cnt2];
-                        offset = headLen + 12;
                         var pos = RecvVector3(recvBuf, ref offset);
                         var rot = RecvRot(recvBuf, ref offset);
                         p.pose = new Pose(pos, rot);
@@ -192,28 +200,25 @@ public class TcpBase
 
     protected Quaternion RecvRot(byte[] buf, ref int offset)
     {
-        float x = Bytes2Int(buf, offset) / (float) scale_point;
-        float y = Bytes2Int(buf, offset + 4) / (float) scale_point;
-        float z = Bytes2Int(buf, offset + 8) / (float) scale_point;
-        float w = Bytes2Int(buf, offset + 12) / (float) scale_point;
-        offset += 16;
+        float x = Bytes2Int(buf, ref offset) / (float) scale_point;
+        float y = Bytes2Int(buf, ref offset) / (float) scale_point;
+        float z = Bytes2Int(buf, ref offset) / (float) scale_point;
+        float w = Bytes2Int(buf, ref offset) / (float) scale_point;
         return new Quaternion(x, y, z, w);
     }
 
     protected Vector3 RecvVector3(byte[] buf, ref int offset)
     {
-        int x = Bytes2Int(buf, offset);
-        int y = Bytes2Int(buf, offset + 4);
-        int z = Bytes2Int(buf, offset + 8);
-        offset += 12;
+        int x = Bytes2Int(buf, ref offset);
+        int y = Bytes2Int(buf, ref offset);
+        int z = Bytes2Int(buf, ref offset);
         return new Vector3(x, y, z) / scale_point;
     }
 
     protected Vector2 RecvVector2(byte[] buf, ref int offset)
     {
-        int x = Bytes2Int(buf, offset);
-        int y = Bytes2Int(buf, offset + 4);
-        offset += 8;
+        int x = Bytes2Int(buf, ref offset);
+        int y = Bytes2Int(buf, ref offset);
         return new Vector2(x, y) / scale_point;
     }
 }

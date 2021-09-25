@@ -108,8 +108,7 @@ public class TcpServer : TcpBase
                 WriteVector3(pos, ref offset);
                 WriteVector3(angle, ref offset);
                 cnt = points.Count;
-                WriteInt32(cnt, offset);
-                offset += 4;
+                WriteInt32(cnt, ref offset);
                 for (int i = 0; i < cnt; i++)
                 {
                     WriteVector3(points[i], ref offset);
@@ -119,17 +118,13 @@ public class TcpServer : TcpBase
         }
     }
 
-    private List<ARPlane> planes =new List<ARPlane>();
-
     private void AcquirePlanes()
     {
-        List<ARPlane> newPlanes = new List<ARPlane>();
-        ARFrame.GetTrackables(newPlanes, ARTrackableQueryFilter.NEW);
-        int cnt = newPlanes.Count;
-        if (cnt > 0) planes.AddRange(newPlanes);
-        cnt = planes.Count;
-        WriteInt32(cnt, headLen);
-        int offset = headLen + 4;
+        List<ARPlane> planes = new List<ARPlane>();
+        ARFrame.GetTrackables(planes, ARTrackableQueryFilter.ALL);
+        int cnt = planes.Count;
+        int offset = headLen;
+        WriteInt32(cnt, ref offset);
         for (int i = 0; i < cnt; i++)
         {
             var plane = planes[i];
@@ -141,10 +136,8 @@ public class TcpServer : TcpBase
                 List<Vector2> meshVertices2D = new List<Vector2>();
                 plane.GetPlanePolygon(meshVertices3D);
                 plane.GetPlanePolygon(ref meshVertices2D);
-                WriteInt32(meshVertices3D.Count, offset);
-                offset += 4;
-                WriteInt32(meshVertices2D.Count, offset);
-                offset += 4;
+                WriteInt32(meshVertices3D.Count, ref offset);
+                WriteInt32(meshVertices2D.Count, ref offset);
                 var pose = plane.GetCenterPose();
                 WriteVector3(pose.position, ref offset);
                 WriteRot(pose.rotation, ref offset);
@@ -159,8 +152,7 @@ public class TcpServer : TcpBase
             }
             else
             {
-                WriteInt32(-1, offset);
-                offset += 4;
+                WriteInt32(-1, ref offset);
             }
         }
         if (cnt > 0)
@@ -173,9 +165,8 @@ public class TcpServer : TcpBase
     {
         int x = (int) (v.x * scale_point);
         int y = (int) (v.y * scale_point);
-        WriteInt32(x, offset);
-        WriteInt32(y, offset + 4);
-        offset += 8;
+        WriteInt32(x, ref offset);
+        WriteInt32(y, ref offset);
     }
 
     private void WriteVector3(Vector3 v, ref int offset)
@@ -183,10 +174,9 @@ public class TcpServer : TcpBase
         int x = (int) (v.x * scale_point);
         int y = (int) (v.y * scale_point);
         int z = (int) (v.z * scale_point);
-        WriteInt32(x, offset);
-        WriteInt32(y, offset + 4);
-        WriteInt32(z, offset + 8);
-        offset += 12;
+        WriteInt32(x, ref offset);
+        WriteInt32(y, ref offset);
+        WriteInt32(z, ref offset);
     }
 
     private void WriteRot(Quaternion v, ref int offset)
@@ -195,17 +185,17 @@ public class TcpServer : TcpBase
         int y = (int) (v.y * scale_point);
         int z = (int) (v.z * scale_point);
         int w = (int) (v.w * scale_point);
-        WriteInt32(x, offset);
-        WriteInt32(y, offset + 4);
-        WriteInt32(z, offset + 8);
-        WriteInt32(w, offset + 12);
-        offset += 16;
+        WriteInt32(x, ref offset);
+        WriteInt32(y, ref offset);
+        WriteInt32(z, ref offset);
+        WriteInt32(w, ref offset);
     }
 
-    private void WriteInt32(int v, int offset)
+    private void WriteInt32(int v, ref int offset)
     {
         var bytes = Int2Bytes(v);
         Array.Copy(bytes, 0, sendBuf, offset, 4);
+        offset += 4;
     }
 
     private void AcquireCpuImage()
@@ -220,10 +210,11 @@ public class TcpServer : TcpBase
     private void SendPreview(int width, int height, IntPtr ptr)
     {
         int len = (int) (width * height * 1.5f);
-        WriteInt32(width, headLen);
-        WriteInt32(height, headLen + 4);
-        WriteInt32(len, headLen + 8);
-        Marshal.Copy(ptr, sendBuf, 12 + headLen, len);
+        int offset = headLen;
+        WriteInt32(width, ref offset);
+        WriteInt32(height, ref offset);
+        WriteInt32(len, ref offset);
+        Marshal.Copy(ptr, sendBuf, offset, len);
         SendWithHead(TcpHead.Preview, len + 12);
     }
 }
