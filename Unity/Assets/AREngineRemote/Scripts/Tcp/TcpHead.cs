@@ -30,7 +30,7 @@ public enum TcpState
     Quit = 8
 }
 
-
+[Flags]
 public enum TcpHead
 {
     /// <summary>
@@ -51,10 +51,15 @@ public enum TcpHead
     /// <summary>
     /// 点云
     /// </summary>
-    CloudPoint = 0x3,
+    PointCloud = 0x3,
     
     /// <summary>
     /// 平面
     /// </summary>
     Plane = 0x4,
+    
+    /// <summary>
+    /// 放在最后
+    /// </summary>
+    MAX,
 }

@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
 
-namespace DefaultNamespace
+namespace HuaweiAREngineRemote
 {
     public class ADBExecutor
     {
@@ -54,7 +54,7 @@ namespace DefaultNamespace
         {
             if (string.IsNullOrEmpty(device_id.Trim()))
             {
-                Debug.Log("adb forward tcp:" + HOST_PORT + " tcp:" + ANDROID_PORT);
+                Debug.Log("adb forward tcp:35000 tcp:30000");
                 AdbExec(" forward tcp:" + HOST_PORT + " tcp:" + ANDROID_PORT);
             }
             else

@@ -36,10 +36,6 @@
         private void Start()
         {
             m_camera = GetComponent<Camera>();
-            if (Application.isEditor)
-            {
-                BackGroundMaterial = Resources.Load<Material>("Materials/EditBackground");
-            }
         }
 
         /**
