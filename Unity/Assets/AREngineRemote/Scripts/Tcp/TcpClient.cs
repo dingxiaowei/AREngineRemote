@@ -13,7 +13,7 @@ namespace HuaweiAREngineRemote
     {
         private PreviewStreamVisualizer previewVisualizer;
         private PointCloudVisualizer pointCloudVisualizer;
-        private PlaneVisualizer planeVisualizer;
+        private ARPlaneVisualizer _arPlaneVisualizer;
 
         public TcpClient(string ip, int port, Action<string, TcpState> notify)
         {
@@ -54,8 +54,8 @@ namespace HuaweiAREngineRemote
             ob = Resources.Load<GameObject>("PlaneVisualizer");
             obj = GameObject.Instantiate(ob);
             obj.name = "PlaneVisualizer";
-            planeVisualizer = obj.AddComponent<PlaneVisualizer>();
-            planeVisualizer.Set(this);
+            _arPlaneVisualizer = obj.AddComponent<ARPlaneVisualizer>();
+            _arPlaneVisualizer.Set(this);
         }
 
         private void Connect(string ip, int port)
@@ -94,10 +94,10 @@ namespace HuaweiAREngineRemote
                 pointCloudVisualizer.UpdateVisual(ar_point);
                 PointCloudVisualizer.change = false;
             }
-            if (PlaneVisualizer.change)
+            if (ARPlaneVisualizer.change)
             {
-                planeVisualizer.UpdateVisual(ar_plane);
-                PlaneVisualizer.change = true;
+                _arPlaneVisualizer.UpdateVisual(ar_plane);
+                ARPlaneVisualizer.change = true;
             }
         }
 

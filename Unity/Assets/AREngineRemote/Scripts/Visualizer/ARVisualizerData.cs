@@ -29,6 +29,7 @@ namespace HuaweiAREngineRemote
         public Vector3[] meshVertices3D;
         public Vector2[] meshVertices2D;
         public Pose pose = Pose.identity;
+        public string label;
     }
 
     public class AREnginePlane : VisualizerData

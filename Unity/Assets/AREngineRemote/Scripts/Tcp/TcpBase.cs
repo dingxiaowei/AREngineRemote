@@ -172,7 +172,7 @@ namespace HuaweiAREngineRemote
                             }
                         }
                     }
-                    PlaneVisualizer.change = true;
+                    ARPlaneVisualizer.change = true;
                     break;
                 case TcpHead.String:
                     var strRecMsg = Encoding.UTF8.GetString(recvBuf, headLen, length - headLen);

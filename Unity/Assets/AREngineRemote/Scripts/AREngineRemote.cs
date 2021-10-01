@@ -1,5 +1,4 @@
 ﻿using System;
-using Common;
 using UnityEngine;
 
 namespace HuaweiAREngineRemote
@@ -13,7 +12,6 @@ namespace HuaweiAREngineRemote
             if (!Application.isEditor && tcp == null)
             {
                 tcp = new TcpServer("127.0.0.1", ADBExecutor.ANDROID_PORT, OnRecvMsg);
-                
             }
         }
 
