@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using HuaweiARUnitySDK;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -10,9 +8,9 @@ namespace HuaweiAREngineRemote
     public class ARPlaneVisualizer : BaseVisualizer<AREnginePlane>
     {
         public static volatile bool change;
-        private List<MeshFilter> filters = new List<MeshFilter>();
-        private static Material gridMat;
         private static readonly int PlaneNormal = Shader.PropertyToID("_PlaneNormal");
+        private List<MeshFilter> filters = new List<MeshFilter>();
+        private Material gridMat;
 
         protected override TcpHead head
         {
@@ -21,8 +19,10 @@ namespace HuaweiAREngineRemote
 
         protected override void Init()
         {
-            var p = "Assets/Examples/Materials/grid.mat";
-            gridMat = AssetDatabase.LoadAssetAtPath<Material>(p);
+#if UNITY_EDITOR
+            var p = "Assets/Examples/Common/Materials/grid.mat";
+            gridMat = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>(p);      
+#endif
         }
 
         protected override void OnUpdate()
@@ -38,18 +38,17 @@ namespace HuaweiAREngineRemote
                 }
                 var p = ar_data.planes[i];
                 var m3d = p.meshVertices3D;
-                int count = m3d?.Length ?? 0;
-                for (int j = 0; j < count; j++)
+                for (int j = 0; j < m3d.Count; j++)
                 {
                     p.meshVertices3D[i] = p.pose.rotation * m3d[i] + p.pose.position;
                 }
                 Vector3 planeNormal = p.pose.rotation * Vector3.up;
                 var render = filters[i].GetComponent<Renderer>();
                 render.material.SetVector(PlaneNormal, planeNormal);
-                Triangulator tr = new Triangulator(p.meshVertices2D.ToList());
-                var m_mesh = filters[i].mesh;
-                m_mesh.SetVertices(p.meshVertices3D.ToList());
-                m_mesh.SetIndices(tr.Triangulate(), MeshTopology.Triangles, 0);
+                Triangulator tr = new Triangulator(p.meshVertices2D);
+                Mesh mesh = filters[i].mesh;
+                mesh.SetVertices(p.meshVertices3D);
+                mesh.SetIndices(tr.Triangulate(), MeshTopology.Triangles, 0);
                 var text = filters[i].transform.GetChild(0).GetComponent<TextMesh>();
                 UpdateLabel(p, text);
             }
@@ -90,7 +89,7 @@ namespace HuaweiAREngineRemote
             child.transform.SetParent(go.transform);
             child.transform.localPosition = Vector3.zero;
             child.transform.localRotation = Quaternion.identity;
-            child.transform.localScale = Vector3.one;
+            child.transform.localScale = Vector3.one * 0.1f;
             var tm = child.AddComponent<TextMesh>();
             tm.offsetZ = 0;
             tm.characterSize = 0.1f;

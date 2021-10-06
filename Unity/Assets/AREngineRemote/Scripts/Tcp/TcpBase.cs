@@ -155,20 +155,22 @@ namespace HuaweiAREngineRemote
                         int cnt1 = Bytes2Int(recvBuf, ref offset);
                         if (cnt1 > 0)
                         {
-                            p.meshVertices3D = new Vector3[cnt1];
                             int cnt2 = Bytes2Int(recvBuf, ref offset);
                             p.label = RecvString(recvBuf, ref offset);
-                            p.meshVertices2D = new Vector2[cnt2];
                             var pos = RecvVector3(recvBuf, ref offset);
                             var rot = RecvRot(recvBuf, ref offset);
                             p.pose = new Pose(pos, rot);
+                            p.meshVertices3D.Clear();
                             for (int j = 0; j < cnt1; j++)
                             {
-                                p.meshVertices3D[i] = RecvVector3(recvBuf, ref offset);
+                                var v = RecvVector3(recvBuf, ref offset);
+                                p.meshVertices3D.Add(v);
                             }
+                            p.meshVertices2D.Clear();
                             for (int j = 0; j < cnt2; j++)
                             {
-                                p.meshVertices2D[i] = RecvVector2(recvBuf, ref offset);
+                                var v = RecvVector2(recvBuf, ref offset);
+                                p.meshVertices2D.Add(v);
                             }
                         }
                     }

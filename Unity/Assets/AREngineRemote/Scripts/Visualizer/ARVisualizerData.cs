@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace HuaweiAREngineRemote
 {
@@ -26,8 +27,8 @@ namespace HuaweiAREngineRemote
 
     public class AREngineVectices
     {
-        public Vector3[] meshVertices3D;
-        public Vector2[] meshVertices2D;
+        public List<Vector3> meshVertices3D =new List<Vector3>();
+        public List<Vector2> meshVertices2D = new List<Vector2>();
         public Pose pose = Pose.identity;
         public string label;
     }

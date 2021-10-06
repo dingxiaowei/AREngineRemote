@@ -19,7 +19,6 @@ namespace HuaweiAREngineRemote
         {
             try
             {
-                SetupEnv();
                 sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 sock.NoDelay = true;
                 callback = notify;
@@ -32,16 +31,12 @@ namespace HuaweiAREngineRemote
             }
         }
 
-
-        private void SetupEnv()
+        private void InitVisualizer()
         {
             var obj = Resources.Load<GameObject>("ClientARDevice");
             GameObject.Instantiate(obj);
-        }
-
-        private void InitVisualizer()
-        {
-            var obj = new GameObject("PreviewStreamVisualizer");
+            
+            obj = new GameObject("PreviewStreamVisualizer");
             previewVisualizer = obj.AddComponent<PreviewStreamVisualizer>();
             previewVisualizer.Set(this);
 
