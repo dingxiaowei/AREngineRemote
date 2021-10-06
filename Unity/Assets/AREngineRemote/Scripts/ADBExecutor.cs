@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
 
@@ -9,7 +8,10 @@ namespace HuaweiAREngineRemote
         public const int ANDROID_PORT = 30000;
         public const int HOST_PORT = 35000;
         public const string adb = @"adb";
-
+        
+        /// <summary>
+        /// adb configed in environment path
+        /// </summary>
         private static string AdbExec(string command)
         {
             Process pro = new Process();
@@ -50,7 +52,7 @@ namespace HuaweiAREngineRemote
             return null;
         }
 
-        public void AdbSingleDevicePortForward(String device_id)
+        public void AdbSingleDevicePortForward(string device_id)
         {
             if (string.IsNullOrEmpty(device_id.Trim()))
             {

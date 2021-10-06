@@ -19,8 +19,7 @@ namespace HuaweiAREngineRemote
         {
             render = FindObjectOfType<BackGroundRenderer>();
         }
-
-
+        
         protected override void OnUpdate()
         {
             if (texY == null)

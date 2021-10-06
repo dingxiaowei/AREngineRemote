@@ -23,7 +23,6 @@ namespace HuaweiAREngineRemote
         protected Socket sock;
         protected Thread thread;
 
-
         public virtual void Update() { }
 
         public virtual void Close(bool notify)
@@ -158,6 +157,7 @@ namespace HuaweiAREngineRemote
                         {
                             p.meshVertices3D = new Vector3[cnt1];
                             int cnt2 = Bytes2Int(recvBuf, ref offset);
+                            p.label = RecvString(recvBuf, ref offset);
                             p.meshVertices2D = new Vector2[cnt2];
                             var pos = RecvVector3(recvBuf, ref offset);
                             var rot = RecvRot(recvBuf, ref offset);
@@ -211,6 +211,15 @@ namespace HuaweiAREngineRemote
             int x = Bytes2Int(buf, ref offset);
             int y = Bytes2Int(buf, ref offset);
             return new Vector2(x, y) / scale_point;
+        }
+
+        protected string RecvString(byte[] buf, ref int offset)
+        {
+            int len = Bytes2Int(buf, ref offset);
+            var bytes = new byte[len];
+            Array.Copy(buf, offset, bytes, 0, len);
+            offset += len;
+            return Encoding.Default.GetString(bytes);
         }
     }
 }

@@ -163,6 +163,8 @@ namespace HuaweiAREngineRemote
                     plane.GetPlanePolygon(ref meshVertices2D);
                     WriteInt32(meshVertices3D.Count, ref offset);
                     WriteInt32(meshVertices2D.Count, ref offset);
+                    var label = plane.GetARPlaneLabel();
+                    WriteString(label.ToString(), ref offset);
                     var pose = plane.GetCenterPose();
                     WriteVector3(pose.position, ref offset);
                     WriteRot(pose.rotation, ref offset);
@@ -221,6 +223,15 @@ namespace HuaweiAREngineRemote
             var bytes = Int2Bytes(v);
             Array.Copy(bytes, 0, sendBuf, offset, 4);
             offset += 4;
+        }
+
+        private void WriteString(string v, ref int offset)
+        {
+            var bytes = System.Text.Encoding.Default.GetBytes(v);
+            int len = bytes.Length;
+            WriteInt32(len,ref offset);
+            Array.Copy(bytes, 0, sendBuf, offset, len);
+            offset += len;
         }
 
         private void AcquireCpuImage()

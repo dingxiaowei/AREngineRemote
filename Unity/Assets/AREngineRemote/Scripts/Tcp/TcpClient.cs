@@ -41,7 +41,7 @@ namespace HuaweiAREngineRemote
 
         private void InitVisualizer()
         {
-            var obj = new GameObject("previewer");
+            var obj = new GameObject("PreviewStreamVisualizer");
             previewVisualizer = obj.AddComponent<PreviewStreamVisualizer>();
             previewVisualizer.Set(this);
 
