@@ -146,7 +146,7 @@ namespace HuaweiAREngineRemote
 
         List<Vector3> meshVertices3D = new List<Vector3>();
         List<Vector2> meshVertices2D = new List<Vector2>();
-        
+
         private void AcquirePlanes()
         {
             List<ARPlane> planes = new List<ARPlane>();
@@ -187,6 +187,31 @@ namespace HuaweiAREngineRemote
             if (count > 0)
             {
                 SendWithHead(TcpHead.Plane, offset - headLen);
+            }
+        }
+
+        private void AcquireScene()
+        {
+            if (ARFrame.GetTrackingState() == ARTrackable.TrackingState.TRACKING)
+            {
+                var sceneMesh = ARFrame.AcquireSceneMesh();
+                var points = sceneMesh.Vertices;
+                if (points.Length > 0)
+                {
+                    int offset = headLen;
+                    WriteInt32(points.Length, ref offset);
+                    for (int i = 0; i < points.Length; i++)
+                    {
+                        WriteVector3(points[i], ref offset);
+                    }
+                    var trigers = sceneMesh.TriangleIndices;
+                    WriteInt32(trigers.Length, ref offset);
+                    for (int i = 0; i < trigers.Length; i++)
+                    {
+                        WriteInt32(trigers[i], ref offset);
+                    }
+                    SendWithHead(TcpHead.SceneMesh, offset - headLen);
+                }
             }
         }
 
@@ -231,7 +256,7 @@ namespace HuaweiAREngineRemote
         {
             var bytes = System.Text.Encoding.Default.GetBytes(v);
             int len = bytes.Length;
-            WriteInt32(len,ref offset);
+            WriteInt32(len, ref offset);
             Array.Copy(bytes, 0, sendBuf, offset, len);
             offset += len;
         }

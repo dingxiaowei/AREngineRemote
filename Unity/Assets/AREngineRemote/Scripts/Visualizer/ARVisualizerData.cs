@@ -37,4 +37,10 @@ namespace HuaweiAREngineRemote
     {
         public AREngineVectices[] planes;
     }
+
+    public class AREngineSceneMesh : VisualizerData
+    {
+        public Vector3[] vertices;
+        public int[] triangles;
+    }
 }

@@ -14,6 +14,7 @@ namespace HuaweiAREngineRemote
         private PreviewStreamVisualizer _previewVisualizer;
         private PointCloudVisualizer _pointCloudVisualizer;
         private ARPlaneVisualizer _arPlaneVisualizer;
+        private ARSceneMeshVisulizer _arSceneVisulizer;
 
         public TcpClient(string ip, int port, Action<string, TcpState> notify)
         {
@@ -93,6 +94,11 @@ namespace HuaweiAREngineRemote
             {
                 _arPlaneVisualizer.UpdateVisual(ar_plane);
                 ARPlaneVisualizer.change = true;
+            }
+            if (ARSceneMeshVisulizer.change)
+            {
+                _arSceneVisulizer.UpdateVisual(ar_mesh);
+                ARSceneMeshVisulizer.change = true;
             }
         }
 

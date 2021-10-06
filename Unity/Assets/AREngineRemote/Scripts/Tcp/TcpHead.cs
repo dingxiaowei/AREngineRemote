@@ -1,6 +1,5 @@
 ﻿using System;
 
-
 [Flags]
 public enum TcpState
 {
@@ -47,17 +46,22 @@ public enum TcpHead
     /// 预览流
     /// </summary>
     Preview = 0x2,
-    
+
     /// <summary>
     /// 点云
     /// </summary>
     PointCloud = 0x3,
-    
+
     /// <summary>
     /// 平面
     /// </summary>
     Plane = 0x4,
-    
+
+    /// <summary>
+    /// scene mesh
+    /// </summary>
+    SceneMesh = 0x5,
+
     /// <summary>
     /// 放在最后
     /// </summary>

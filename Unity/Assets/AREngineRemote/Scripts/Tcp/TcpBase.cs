@@ -16,6 +16,7 @@ namespace HuaweiAREngineRemote
         protected AREngineImage ar_image = new AREngineImage();
         protected AREnginePointCloud ar_point = new AREnginePointCloud();
         protected AREnginePlane ar_plane = new AREnginePlane();
+        protected AREngineSceneMesh ar_mesh = new AREngineSceneMesh();
         protected Action<string, TcpState> callback;
         protected volatile bool threadRun = true;
         protected byte[] recvBuf = new byte[bufSize];
@@ -169,6 +170,20 @@ namespace HuaweiAREngineRemote
                         }
                     }
                     ARPlaneVisualizer.change = true;
+                    break;
+                case TcpHead.SceneMesh:
+                    int p_cnt = Bytes2Int(recvBuf, ref offset);
+                    ar_mesh.vertices = new Vector3[p_cnt];
+                    for (int i = 0; i < p_cnt; i++)
+                    {
+                        ar_mesh.vertices[i] = RecvVector3(recvBuf, ref offset);
+                    }
+                    p_cnt = Bytes2Int(recvBuf, ref offset);
+                    for (int i = 0; i < p_cnt; i++)
+                    {
+                        ar_mesh.triangles[i] = Bytes2Int(recvBuf, ref offset);
+                    }
+                    ARSceneMeshVisulizer.change = true;
                     break;
                 case TcpHead.String:
                     var strRecMsg = Encoding.UTF8.GetString(recvBuf, headLen, length - headLen);
