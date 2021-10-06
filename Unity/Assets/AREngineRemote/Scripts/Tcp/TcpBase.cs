@@ -179,6 +179,7 @@ namespace HuaweiAREngineRemote
                         ar_mesh.vertices[i] = RecvVector3(recvBuf, ref offset);
                     }
                     p_cnt = Bytes2Int(recvBuf, ref offset);
+                    ar_mesh.triangles = new int[p_cnt];
                     for (int i = 0; i < p_cnt; i++)
                     {
                         ar_mesh.triangles[i] = Bytes2Int(recvBuf, ref offset);

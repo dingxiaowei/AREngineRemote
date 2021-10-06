@@ -52,6 +52,12 @@ namespace HuaweiAREngineRemote
             obj.name = "PlaneVisualizer";
             _arPlaneVisualizer = obj.AddComponent<ARPlaneVisualizer>();
             _arPlaneVisualizer.Set(this);
+            
+            ob = Resources.Load<GameObject>("SceneMeshVisulizer");
+            obj = GameObject.Instantiate(ob);
+            obj.name = "ARSceneMeshVisulizer";
+            _arSceneVisulizer = obj.AddComponent<ARSceneMeshVisulizer>();
+            _arSceneVisulizer.Set(this);
         }
 
         private void Connect(string ip, int port)
