@@ -114,12 +114,11 @@ namespace HuaweiAREngineRemote
 
         protected void Process(int length)
         {
-            int offset = 0;
+            int offset = headLen;
             var head = (TcpHead) recvBuf[4];
             switch (head)
             {
                 case TcpHead.Preview:
-                    offset = headLen;
                     var width = Bytes2Int(recvBuf, ref offset);
                     var heigth = Bytes2Int(recvBuf, ref offset);
                     ar_image.Set(width, heigth);
@@ -136,7 +135,6 @@ namespace HuaweiAREngineRemote
                     PreviewStreamVisualizer.change = true;
                     break;
                 case TcpHead.PointCloud:
-                    offset = headLen;
                     ar_point.camPos = RecvVector3(recvBuf, ref offset);
                     ar_point.camAngle = RecvVector3(recvBuf, ref offset);
                     int cnt = Bytes2Int(recvBuf, ref offset);
@@ -145,7 +143,6 @@ namespace HuaweiAREngineRemote
                     PointCloudVisualizer.change = true;
                     break;
                 case TcpHead.Plane:
-                    offset = headLen;
                     int count = Bytes2Int(recvBuf, ref offset);
                     ar_plane.planes = new AREngineVectices[count];
                     for (int i = 0; i < count; i++)
@@ -153,25 +150,22 @@ namespace HuaweiAREngineRemote
                         var p = new AREngineVectices();
                         ar_plane.planes[i] = p;
                         int cnt1 = Bytes2Int(recvBuf, ref offset);
-                        if (cnt1 > 0)
+                        int cnt2 = Bytes2Int(recvBuf, ref offset);
+                        p.label = RecvString(recvBuf, ref offset);
+                        var pos = RecvVector3(recvBuf, ref offset);
+                        var rot = RecvRot(recvBuf, ref offset);
+                        p.pose = new Pose(pos, rot);
+                        p.meshVertices3D.Clear();
+                        for (int j = 0; j < cnt1; j++)
                         {
-                            int cnt2 = Bytes2Int(recvBuf, ref offset);
-                            p.label = RecvString(recvBuf, ref offset);
-                            var pos = RecvVector3(recvBuf, ref offset);
-                            var rot = RecvRot(recvBuf, ref offset);
-                            p.pose = new Pose(pos, rot);
-                            p.meshVertices3D.Clear();
-                            for (int j = 0; j < cnt1; j++)
-                            {
-                                var v = RecvVector3(recvBuf, ref offset);
-                                p.meshVertices3D.Add(v);
-                            }
-                            p.meshVertices2D.Clear();
-                            for (int j = 0; j < cnt2; j++)
-                            {
-                                var v = RecvVector2(recvBuf, ref offset);
-                                p.meshVertices2D.Add(v);
-                            }
+                            var v = RecvVector3(recvBuf, ref offset);
+                            p.meshVertices3D.Add(v);
+                        }
+                        p.meshVertices2D.Clear();
+                        for (int j = 0; j < cnt2; j++)
+                        {
+                            var v = RecvVector2(recvBuf, ref offset);
+                            p.meshVertices2D.Add(v);
                         }
                     }
                     ARPlaneVisualizer.change = true;

@@ -85,8 +85,7 @@ namespace Common
             Triangulator tr = new Triangulator(m_meshVertices2D);
             m_mesh.Clear();
             m_mesh.SetVertices(m_meshVertices3D);
-            int[] trigers = tr.Triangulate();
-            m_mesh.SetIndices(trigers, MeshTopology.Triangles, 0);
+            m_mesh.SetIndices(tr.Triangulate(), MeshTopology.Triangles, 0);
             m_mesh.SetColors(m_meshColors);
         }
 

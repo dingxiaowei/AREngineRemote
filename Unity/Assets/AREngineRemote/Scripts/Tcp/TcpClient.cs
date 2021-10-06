@@ -11,8 +11,8 @@ namespace HuaweiAREngineRemote
     /// </summary>
     public class TcpClient : TcpBase
     {
-        private PreviewStreamVisualizer previewVisualizer;
-        private PointCloudVisualizer pointCloudVisualizer;
+        private PreviewStreamVisualizer _previewVisualizer;
+        private PointCloudVisualizer _pointCloudVisualizer;
         private ARPlaneVisualizer _arPlaneVisualizer;
 
         public TcpClient(string ip, int port, Action<string, TcpState> notify)
@@ -37,14 +37,14 @@ namespace HuaweiAREngineRemote
             GameObject.Instantiate(obj);
             
             obj = new GameObject("PreviewStreamVisualizer");
-            previewVisualizer = obj.AddComponent<PreviewStreamVisualizer>();
-            previewVisualizer.Set(this);
+            _previewVisualizer = obj.AddComponent<PreviewStreamVisualizer>();
+            _previewVisualizer.Set(this);
 
             var ob = Resources.Load<GameObject>("PointCloudVisualizer");
             obj = GameObject.Instantiate(ob);
             obj.name = "PointCloudVisualizer";
-            pointCloudVisualizer = obj.AddComponent<PointCloudVisualizer>();
-            pointCloudVisualizer.Set(this);
+            _pointCloudVisualizer = obj.AddComponent<PointCloudVisualizer>();
+            _pointCloudVisualizer.Set(this);
 
             ob = Resources.Load<GameObject>("PlaneVisualizer");
             obj = GameObject.Instantiate(ob);
@@ -81,12 +81,12 @@ namespace HuaweiAREngineRemote
         {
             if (PreviewStreamVisualizer.change)
             {
-                previewVisualizer.UpdateVisual(ar_image);
+                _previewVisualizer.UpdateVisual(ar_image);
                 PreviewStreamVisualizer.change = false;
             }
             if (PointCloudVisualizer.change)
             {
-                pointCloudVisualizer.UpdateVisual(ar_point);
+                _pointCloudVisualizer.UpdateVisual(ar_point);
                 PointCloudVisualizer.change = false;
             }
             if (ARPlaneVisualizer.change)

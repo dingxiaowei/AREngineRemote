@@ -54,12 +54,6 @@ namespace HuaweiAREngineRemote
             tcp = new TcpClient("127.0.0.1", ADBExecutor.HOST_PORT, OnRecvMsg);
         }
 
-        [ContextMenu("ping")]
-        private void Ping()
-        {
-            tcp?.Send("ping...");
-        }
-
         [ContextMenu("close")]
         private void OnDestroy()
         {

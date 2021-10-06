@@ -144,32 +144,37 @@ namespace HuaweiAREngineRemote
             }
         }
 
+        List<Vector3> meshVertices3D = new List<Vector3>();
+        List<Vector2> meshVertices2D = new List<Vector2>();
+        
         private void AcquirePlanes()
         {
             List<ARPlane> planes = new List<ARPlane>();
             ARFrame.GetTrackables(planes, ARTrackableQueryFilter.ALL);
             int cnt = planes.Count;
             int offset = headLen;
-            WriteInt32(cnt, ref offset);
+            int index = offset;
+            offset += 4; // sizeof(int) = place holder
+            int count = 0;
             for (int i = 0; i < cnt; i++)
             {
                 var plane = planes[i];
                 var st = plane.GetTrackingState();
                 if (st == ARTrackable.TrackingState.TRACKING)
                 {
-                    List<Vector3> meshVertices3D = new List<Vector3>();
-                    List<Vector2> meshVertices2D = new List<Vector2>();
+                    count++;
                     plane.GetPlanePolygon(meshVertices3D);
+                    var pose = plane.GetCenterPose();
                     plane.GetPlanePolygon(ref meshVertices2D);
                     WriteInt32(meshVertices3D.Count, ref offset);
                     WriteInt32(meshVertices2D.Count, ref offset);
                     var label = plane.GetARPlaneLabel();
                     WriteString(label.ToString(), ref offset);
-                    var pose = plane.GetCenterPose();
                     WriteVector3(pose.position, ref offset);
                     WriteRot(pose.rotation, ref offset);
                     for (int j = 0; j < meshVertices3D.Count; j++)
                     {
+                        meshVertices3D[j] = pose.rotation * meshVertices3D[j] + pose.position;
                         WriteVector3(meshVertices3D[j], ref offset);
                     }
                     for (int j = 0; j < meshVertices2D.Count; j++)
@@ -177,12 +182,9 @@ namespace HuaweiAREngineRemote
                         WriteVector2(meshVertices2D[j], ref offset);
                     }
                 }
-                else
-                {
-                    WriteInt32(-1, ref offset);
-                }
+                WriteInt32(count, ref index);
             }
-            if (cnt > 0)
+            if (count > 0)
             {
                 SendWithHead(TcpHead.Plane, offset - headLen);
             }

@@ -37,19 +37,15 @@ namespace HuaweiAREngineRemote
                     filters.Add(filter);
                 }
                 var p = ar_data.planes[i];
-                var m3d = p.meshVertices3D;
-                for (int j = 0; j < m3d.Count; j++)
-                {
-                    p.meshVertices3D[i] = p.pose.rotation * m3d[i] + p.pose.position;
-                }
                 Vector3 planeNormal = p.pose.rotation * Vector3.up;
                 var render = filters[i].GetComponent<Renderer>();
                 render.material.SetVector(PlaneNormal, planeNormal);
                 Triangulator tr = new Triangulator(p.meshVertices2D);
                 Mesh mesh = filters[i].mesh;
+                mesh.Clear();
                 mesh.SetVertices(p.meshVertices3D);
                 mesh.SetIndices(tr.Triangulate(), MeshTopology.Triangles, 0);
-                var text = filters[i].transform.GetChild(0).GetComponent<TextMesh>();
+                var text = render.transform.GetChild(0).GetComponent<TextMesh>();
                 UpdateLabel(p, text);
             }
         }
