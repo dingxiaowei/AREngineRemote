@@ -152,8 +152,6 @@
                     m_handSkeletonConnectionRenderer[i].SetPosition(1, camera2WorldMatrix.MultiplyPoint(endCameraCoord));
                 }
             }
-
-
         }
 
         private Vector3 _TransferGLCoord2UnityWoldCoordWithDepth(Vector3 glCoord)

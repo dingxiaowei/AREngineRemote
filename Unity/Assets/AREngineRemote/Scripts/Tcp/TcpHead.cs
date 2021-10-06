@@ -32,8 +32,8 @@ public enum TcpState
 public enum SceneState
 {
     World,
-    SceneMesh,
-    Body,
+    Scene,
+    Hand,
     Face
 }
 
@@ -70,6 +70,11 @@ public enum TcpHead
     /// scene mesh
     /// </summary>
     SceneMesh = 0x5,
+    
+    /// <summary>
+    /// hand
+    /// </summary>
+    Hand = 0x6,
 
     /// <summary>
     /// 放在最后

@@ -6,7 +6,7 @@ namespace HuaweiAREngineRemote
     public class AREngineRemote : MonoBehaviour
     {
         private TcpBase tcp;
-
+        
         public SceneState state;
 
         private void Start()
@@ -24,12 +24,12 @@ namespace HuaweiAREngineRemote
                 Connect();
         }
 
-        private void OnRecvMsg(string msg, TcpState state)
+        private void OnRecvMsg(string msg, TcpState st)
         {
             if (!string.IsNullOrEmpty(msg.Trim()))
             {
                 var pref = "";
-                switch (state)
+                switch (st)
                 {
                     case TcpState.Send:
                         pref = " send: ";

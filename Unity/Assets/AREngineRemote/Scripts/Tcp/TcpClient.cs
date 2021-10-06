@@ -7,14 +7,14 @@ using UnityEngine;
 namespace HuaweiAREngineRemote
 {
     /// <summary>
-    /// 运行在Editor中
+    /// 运行在 Editor 中
     /// </summary>
     public class TcpClient : TcpBase
     {
         private PreviewStreamVisualizer _previewVisualizer;
         private PointCloudVisualizer _pointCloudVisualizer;
         private ARPlaneVisualizer _arPlaneVisualizer;
-        private ARSceneMeshVisulizer _arSceneVisulizer;
+        private ARSceneMeshVisulizer _arSceneVisualizer;
 
         public TcpClient(string ip, int port, SceneState st, Action<string, TcpState> notify) : base(st)
         {
@@ -46,19 +46,20 @@ namespace HuaweiAREngineRemote
                 obj.name = "PointCloudVisualizer";
                 _pointCloudVisualizer = obj.AddComponent<PointCloudVisualizer>();
                 _pointCloudVisualizer.Set(this);
+                
                 ob = Resources.Load<GameObject>("PlaneVisualizer");
                 obj = GameObject.Instantiate(ob);
                 obj.name = "PlaneVisualizer";
                 _arPlaneVisualizer = obj.AddComponent<ARPlaneVisualizer>();
                 _arPlaneVisualizer.Set(this);
             }
-            if (sceneState == SceneState.SceneMesh)
+            if (sceneState == SceneState.Scene)
             {
                 var ob = Resources.Load<GameObject>("SceneMeshVisulizer");
                 obj = GameObject.Instantiate(ob);
                 obj.name = "ARSceneMeshVisulizer";
-                _arSceneVisulizer = obj.AddComponent<ARSceneMeshVisulizer>();
-                _arSceneVisulizer.Set(this);
+                _arSceneVisualizer = obj.AddComponent<ARSceneMeshVisulizer>();
+                _arSceneVisualizer.Set(this);
             }
         }
 
@@ -105,7 +106,7 @@ namespace HuaweiAREngineRemote
             }
             if (ARSceneMeshVisulizer.change)
             {
-                _arSceneVisulizer.UpdateVisual(ar_mesh);
+                _arSceneVisualizer.UpdateVisual(ar_mesh);
                 ARSceneMeshVisulizer.change = true;
             }
         }

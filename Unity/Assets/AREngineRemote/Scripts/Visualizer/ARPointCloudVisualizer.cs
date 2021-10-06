@@ -24,7 +24,7 @@ namespace HuaweiAREngineRemote
             int len = ar_data.len;
             if (len > 1)
             {
-                Vector3[] points = new Vector3[len];
+                var points = new Vector3[len];
                 int[] indexs = new int[len];
                 int offset = 0;
                 for (int i = 0; i < len; i++)

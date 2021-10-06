@@ -53,7 +53,7 @@ namespace HuaweiAREngineRemote
         private void SetupEnv()
         {
             string prefab = "ARWorldDevice";
-            if (sceneState == SceneState.SceneMesh)
+            if (sceneState == SceneState.Scene)
                 prefab = "ARSceneDevice";
             var obj = Resources.Load<GameObject>(prefab);
             var go = GameObject.Instantiate(obj);
@@ -90,7 +90,7 @@ namespace HuaweiAREngineRemote
                             AcquireCloudPoint();
                             AcquirePlanes();
                             break;
-                        case SceneState.SceneMesh:
+                        case SceneState.Scene:
                             AcquireScene();
                             break;
                     }
