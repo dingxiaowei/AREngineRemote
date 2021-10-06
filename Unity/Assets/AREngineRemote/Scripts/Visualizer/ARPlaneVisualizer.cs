@@ -7,7 +7,6 @@ namespace HuaweiAREngineRemote
 {
     public class ARPlaneVisualizer : BaseVisualizer<AREnginePlane>
     {
-        public static volatile bool change;
         private static readonly int PlaneNormal = Shader.PropertyToID("_PlaneNormal");
         private List<MeshFilter> filters = new List<MeshFilter>();
         private Material gridMat;
@@ -17,12 +16,41 @@ namespace HuaweiAREngineRemote
             get { return TcpHead.Plane; }
         }
 
-        protected override void Init()
+        protected override void OnInitial()
         {
 #if UNITY_EDITOR
             var p = "Assets/Examples/Common/Materials/grid.mat";
             gridMat = UnityEditor.AssetDatabase.LoadAssetAtPath<Material>(p);      
 #endif
+        }
+
+        protected override void OnProcess(byte[] recvBuf, ref int offset)
+        {
+            int count = Bytes2Int(recvBuf, ref offset);
+            ar_data.planes = new AREngineVectices[count];
+            for (int i = 0; i < count; i++)
+            {
+                var p = new AREngineVectices();
+                ar_data.planes[i] = p;
+                int cnt1 = Bytes2Int(recvBuf, ref offset);
+                int cnt2 = Bytes2Int(recvBuf, ref offset);
+                p.label = RecvString(recvBuf, ref offset);
+                var pos = RecvVector3(recvBuf, ref offset);
+                var rot = RecvRot(recvBuf, ref offset);
+                p.pose = new Pose(pos, rot);
+                p.meshVertices3D.Clear();
+                for (int j = 0; j < cnt1; j++)
+                {
+                    var v = RecvVector3(recvBuf, ref offset);
+                    p.meshVertices3D.Add(v);
+                }
+                p.meshVertices2D.Clear();
+                for (int j = 0; j < cnt2; j++)
+                {
+                    var v = RecvVector2(recvBuf, ref offset);
+                    p.meshVertices2D.Add(v);
+                }
+            }
         }
 
         protected override void OnUpdate()

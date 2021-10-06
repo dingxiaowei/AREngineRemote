@@ -1,12 +1,11 @@
-﻿using HuaweiARUnitySDK;
+﻿using System;
+using HuaweiARUnitySDK;
 using UnityEngine;
 
 namespace HuaweiAREngineRemote
 {
     public class PreviewStreamVisualizer : BaseVisualizer<AREngineImage>
     {
-        public static volatile bool change;
-
         private Texture2D texY, texUV;
         private BackGroundRenderer render;
 
@@ -15,11 +14,30 @@ namespace HuaweiAREngineRemote
             get { return TcpHead.Preview; }
         }
 
-        protected override void Init()
+        protected override void OnInitial()
         {
             render = FindObjectOfType<BackGroundRenderer>();
         }
-        
+
+        protected override void OnProcess(byte[] recvBuf, ref int offset)
+        {
+            ar_data.camPos = RecvVector3(recvBuf, ref offset);
+            ar_data.camAngle = RecvVector3(recvBuf, ref offset);
+            var width = Bytes2Int(recvBuf, ref offset);
+            var heigth = Bytes2Int(recvBuf, ref offset);
+            ar_data.Set(width, heigth);
+            var len = Bytes2Int(recvBuf, ref offset);
+            var y_len = len * 2 / 3;
+            var uv_len = len / 3;
+            if (ar_data.y_buf == null)
+            {
+                ar_data.y_buf = new byte[y_len];
+                ar_data.uv_buf = new byte[uv_len];
+            }
+            Array.Copy(recvBuf, offset, ar_data.y_buf, 0, y_len);
+            Array.Copy(recvBuf, offset + y_len, ar_data.uv_buf, 0, uv_len);
+        }
+
         protected override void OnUpdate()
         {
             if (texY == null)

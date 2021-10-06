@@ -5,18 +5,32 @@ namespace HuaweiAREngineRemote
     public class ARSceneMeshVisulizer: BaseVisualizer<AREngineSceneMesh>
     {
         private Mesh m_mesh;
-        
-        public static volatile bool change;
-        
+
         protected override TcpHead head
         {
             get { return TcpHead.SceneMesh; }
         }
 
-        protected override void Init()
+        protected override void OnInitial()
         {
             m_mesh = GetComponent<MeshFilter>().mesh;
             m_mesh.Clear();
+        }
+
+        protected override void OnProcess(byte[] recvBuf, ref int offset)
+        {
+            int p_cnt = Bytes2Int(recvBuf, ref offset);
+            ar_data.vertices = new Vector3[p_cnt];
+            for (int i = 0; i < p_cnt; i++)
+            {
+                ar_data.vertices[i] = RecvVector3(recvBuf, ref offset);
+            }
+            p_cnt = Bytes2Int(recvBuf, ref offset);
+            ar_data.triangles = new int[p_cnt];
+            for (int i = 0; i < p_cnt; i++)
+            {
+                ar_data.triangles[i] = Bytes2Int(recvBuf, ref offset);
+            }
         }
 
         protected override void OnUpdate()

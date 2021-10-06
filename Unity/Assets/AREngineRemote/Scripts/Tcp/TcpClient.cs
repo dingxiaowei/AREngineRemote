@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using UnityEngine;
 
@@ -38,20 +39,20 @@ namespace HuaweiAREngineRemote
             GameObject.Instantiate(obj);
             obj = new GameObject("PreviewStreamVisualizer");
             _previewVisualizer = obj.AddComponent<PreviewStreamVisualizer>();
-            _previewVisualizer.Set(this);
+            _previewVisualizer.Init();
             if (sceneState == SceneState.World)
             {
                 var ob = Resources.Load<GameObject>("PointCloudVisualizer");
                 obj = GameObject.Instantiate(ob);
                 obj.name = "PointCloudVisualizer";
                 _pointCloudVisualizer = obj.AddComponent<PointCloudVisualizer>();
-                _pointCloudVisualizer.Set(this);
+                _pointCloudVisualizer.Init();
                 
                 ob = Resources.Load<GameObject>("PlaneVisualizer");
                 obj = GameObject.Instantiate(ob);
                 obj.name = "PlaneVisualizer";
                 _arPlaneVisualizer = obj.AddComponent<ARPlaneVisualizer>();
-                _arPlaneVisualizer.Set(this);
+                _arPlaneVisualizer.Init();
             }
             if (sceneState == SceneState.Scene)
             {
@@ -59,7 +60,7 @@ namespace HuaweiAREngineRemote
                 obj = GameObject.Instantiate(ob);
                 obj.name = "ARSceneMeshVisulizer";
                 _arSceneVisualizer = obj.AddComponent<ARSceneMeshVisulizer>();
-                _arSceneVisualizer.Set(this);
+                _arSceneVisualizer.Init();
             }
         }
 
@@ -87,27 +88,51 @@ namespace HuaweiAREngineRemote
             Recv(sock);
         }
 
+        protected override void Process(int length)
+        {
+            int offset = headLen;
+            var head = (TcpHead) recvBuf[4];
+            switch (head)
+            {
+                case TcpHead.Preview:
+                    _previewVisualizer.ProcessData(recvBuf,ref offset);
+                    break;
+                case TcpHead.PointCloud:
+                    _pointCloudVisualizer.ProcessData(recvBuf, ref offset);
+                    break;
+                case TcpHead.Plane:
+                    _arPlaneVisualizer.ProcessData(recvBuf,ref offset);
+                    break;
+                case TcpHead.SceneMesh:
+                    _arSceneVisualizer.ProcessData(recvBuf,ref offset);
+                    break;
+                case TcpHead.String:
+                    var strRecMsg = Encoding.UTF8.GetString(recvBuf, headLen, length - headLen);
+                    Debug.Log(sock.RemoteEndPoint + " " + DateTime.Now + "\n" + strRecMsg);
+                    callback(strRecMsg, TcpState.Receive);
+                    break;
+                case TcpHead.Quit:
+                    callback("connect quit", TcpState.Quit);
+                    Close(false);
+                    break;
+                default:
+                    Debug.Log("not process " + head);
+                    break;
+            }
+        }
+
         public override void Update()
         {
-            if (PreviewStreamVisualizer.change)
+            _previewVisualizer.Update();
+            switch (sceneState)
             {
-                _previewVisualizer.UpdateVisual(ar_image);
-                PreviewStreamVisualizer.change = false;
-            }
-            if (PointCloudVisualizer.change)
-            {
-                _pointCloudVisualizer.UpdateVisual(ar_point);
-                PointCloudVisualizer.change = false;
-            }
-            if (ARPlaneVisualizer.change)
-            {
-                _arPlaneVisualizer.UpdateVisual(ar_plane);
-                ARPlaneVisualizer.change = true;
-            }
-            if (ARSceneMeshVisulizer.change)
-            {
-                _arSceneVisualizer.UpdateVisual(ar_mesh);
-                ARSceneMeshVisulizer.change = true;
+                case SceneState.World:
+                    _pointCloudVisualizer.Update();
+                    _arPlaneVisualizer.Update();
+                    break;
+                case SceneState.Scene:
+                    _arSceneVisualizer.Update();
+                    break;
             }
         }
 
