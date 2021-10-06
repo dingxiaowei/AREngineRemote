@@ -7,11 +7,13 @@ namespace HuaweiAREngineRemote
     {
         private TcpBase tcp;
 
+        public SceneState state;
+
         private void Start()
         {
             if (!Application.isEditor && tcp == null)
             {
-                tcp = new TcpServer("127.0.0.1", ADBExecutor.ANDROID_PORT, OnRecvMsg);
+                tcp = new TcpServer("127.0.0.1", ADBExecutor.ANDROID_PORT, state, OnRecvMsg);
             }
         }
 
@@ -51,7 +53,7 @@ namespace HuaweiAREngineRemote
         [ContextMenu("connect")]
         private void Connect()
         {
-            tcp = new TcpClient("127.0.0.1", ADBExecutor.HOST_PORT, OnRecvMsg);
+            tcp = new TcpClient("127.0.0.1", ADBExecutor.HOST_PORT, state, OnRecvMsg);
         }
 
         [ContextMenu("close")]

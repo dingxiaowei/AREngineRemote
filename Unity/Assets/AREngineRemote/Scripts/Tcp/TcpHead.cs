@@ -29,6 +29,15 @@ public enum TcpState
     Quit = 8
 }
 
+public enum SceneState
+{
+    World,
+    SceneMesh,
+    Body,
+    Face
+}
+
+
 [Flags]
 public enum TcpHead
 {

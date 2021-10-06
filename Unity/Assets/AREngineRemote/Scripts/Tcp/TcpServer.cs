@@ -32,7 +32,7 @@ namespace HuaweiAREngineRemote
             }
         }
 
-        public TcpServer(string ip, int port, Action<string, TcpState> notify)
+        public TcpServer(string ip, int port, SceneState st, Action<string, TcpState> notify) : base(st)
         {
             SetupEnv();
             state = TcpState.None;
@@ -52,9 +52,13 @@ namespace HuaweiAREngineRemote
 
         private void SetupEnv()
         {
-            var obj = Resources.Load<GameObject>("ServerARDevice");
+            string prefab = "ARWorldDevice";
+            if (sceneState == SceneState.SceneMesh)
+                prefab = "ARSceneDevice";
+            var obj = Resources.Load<GameObject>(prefab);
             var go = GameObject.Instantiate(obj);
-            go.AddComponent<PointcloudVisualizer>();
+            if (sceneState == SceneState.World)
+                go.AddComponent<PointcloudVisualizer>();
             var session = go.GetComponent<SessionComponent>();
             session.OnApplicationPause(false);
         }
@@ -80,8 +84,16 @@ namespace HuaweiAREngineRemote
                 if (Time.time - lastT > 0.1f)
                 {
                     AcquireCpuImage();
-                    AcquireCloudPoint();
-                    AcquirePlanes();
+                    switch (sceneState)
+                    {
+                        case SceneState.World:
+                            AcquireCloudPoint();
+                            AcquirePlanes();
+                            break;
+                        case SceneState.SceneMesh:
+                            AcquireScene();
+                            break;
+                    }
                     lastT = Time.time;
                 }
             }
@@ -127,12 +139,7 @@ namespace HuaweiAREngineRemote
                     {
                         points.RemoveRange(max_point, cnt - max_point);
                     }
-                    var transform = MainCamera.transform;
-                    var pos = transform.position;
-                    var angle = transform.eulerAngles;
                     int offset = headLen;
-                    WriteVector3(pos, ref offset);
-                    WriteVector3(angle, ref offset);
                     cnt = points.Count;
                     WriteInt32(cnt, ref offset);
                     for (int i = 0; i < cnt; i++)
@@ -274,6 +281,11 @@ namespace HuaweiAREngineRemote
         {
             int len = (int) (width * height * 1.5f);
             int offset = headLen;
+            var transform = MainCamera.transform;
+            var pos = transform.position;
+            var angle = transform.eulerAngles;
+            WriteVector3(pos, ref offset);
+            WriteVector3(angle, ref offset);
             WriteInt32(width, ref offset);
             WriteInt32(height, ref offset);
             WriteInt32(len, ref offset);

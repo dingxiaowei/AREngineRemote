@@ -34,6 +34,10 @@ namespace HuaweiAREngineRemote
             texY.Apply();
             texUV.Apply();
             render.UpdateEditor(texY, texUV);
+            
+            var tf = MainCamera.transform;
+            tf.position = ar_data.camPos;
+            tf.eulerAngles = ar_data.camAngle;
         }
     }
 }

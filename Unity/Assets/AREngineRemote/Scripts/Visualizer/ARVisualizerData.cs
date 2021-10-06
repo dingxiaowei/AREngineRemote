@@ -8,13 +8,13 @@ namespace HuaweiAREngineRemote
     public class AREnginePointCloud : VisualizerData
     {
         public int len;
-        public Vector3 camPos;
-        public Vector3 camAngle;
         public byte[] buf = new byte[TcpBase.max_point * 12];
     }
 
     public class AREngineImage : VisualizerData
     {
+        public Vector3 camPos;
+        public Vector3 camAngle;
         public int width, height;
         public byte[] y_buf, uv_buf;
 

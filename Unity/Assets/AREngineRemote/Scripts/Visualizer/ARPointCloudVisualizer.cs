@@ -35,9 +35,6 @@ namespace HuaweiAREngineRemote
                 pointCloudMesh.Clear();
                 pointCloudMesh.vertices = points;
                 pointCloudMesh.SetIndices(indexs, MeshTopology.Points, 0);
-                var tf = MainCamera.transform;
-                tf.position = ar_data.camPos;
-                tf.eulerAngles = ar_data.camAngle;
             }
         }
 

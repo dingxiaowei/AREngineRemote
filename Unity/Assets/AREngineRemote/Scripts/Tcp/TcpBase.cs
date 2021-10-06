@@ -23,6 +23,12 @@ namespace HuaweiAREngineRemote
         protected byte[] sendBuf = new byte[bufSize];
         protected Socket sock;
         protected Thread thread;
+        protected SceneState sceneState;
+
+        public TcpBase(SceneState st)
+        {
+            sceneState = st;
+        }
 
         public virtual void Update() { }
 
@@ -120,6 +126,8 @@ namespace HuaweiAREngineRemote
             switch (head)
             {
                 case TcpHead.Preview:
+                    ar_image.camPos = RecvVector3(recvBuf, ref offset);
+                    ar_image.camAngle = RecvVector3(recvBuf, ref offset);
                     var width = Bytes2Int(recvBuf, ref offset);
                     var heigth = Bytes2Int(recvBuf, ref offset);
                     ar_image.Set(width, heigth);
@@ -136,8 +144,6 @@ namespace HuaweiAREngineRemote
                     PreviewStreamVisualizer.change = true;
                     break;
                 case TcpHead.PointCloud:
-                    ar_point.camPos = RecvVector3(recvBuf, ref offset);
-                    ar_point.camAngle = RecvVector3(recvBuf, ref offset);
                     int cnt = Bytes2Int(recvBuf, ref offset);
                     ar_point.len = cnt;
                     Array.Copy(recvBuf, offset, ar_point.buf, 0, 12 * cnt);

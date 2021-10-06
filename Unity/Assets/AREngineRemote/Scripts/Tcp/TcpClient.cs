@@ -16,7 +16,7 @@ namespace HuaweiAREngineRemote
         private ARPlaneVisualizer _arPlaneVisualizer;
         private ARSceneMeshVisulizer _arSceneVisulizer;
 
-        public TcpClient(string ip, int port, Action<string, TcpState> notify)
+        public TcpClient(string ip, int port, SceneState st, Action<string, TcpState> notify) : base(st)
         {
             try
             {
@@ -36,28 +36,30 @@ namespace HuaweiAREngineRemote
         {
             var obj = Resources.Load<GameObject>("ClientARDevice");
             GameObject.Instantiate(obj);
-            
             obj = new GameObject("PreviewStreamVisualizer");
             _previewVisualizer = obj.AddComponent<PreviewStreamVisualizer>();
             _previewVisualizer.Set(this);
-
-            var ob = Resources.Load<GameObject>("PointCloudVisualizer");
-            obj = GameObject.Instantiate(ob);
-            obj.name = "PointCloudVisualizer";
-            _pointCloudVisualizer = obj.AddComponent<PointCloudVisualizer>();
-            _pointCloudVisualizer.Set(this);
-
-            ob = Resources.Load<GameObject>("PlaneVisualizer");
-            obj = GameObject.Instantiate(ob);
-            obj.name = "PlaneVisualizer";
-            _arPlaneVisualizer = obj.AddComponent<ARPlaneVisualizer>();
-            _arPlaneVisualizer.Set(this);
-            
-            ob = Resources.Load<GameObject>("SceneMeshVisulizer");
-            obj = GameObject.Instantiate(ob);
-            obj.name = "ARSceneMeshVisulizer";
-            _arSceneVisulizer = obj.AddComponent<ARSceneMeshVisulizer>();
-            _arSceneVisulizer.Set(this);
+            if (sceneState == SceneState.World)
+            {
+                var ob = Resources.Load<GameObject>("PointCloudVisualizer");
+                obj = GameObject.Instantiate(ob);
+                obj.name = "PointCloudVisualizer";
+                _pointCloudVisualizer = obj.AddComponent<PointCloudVisualizer>();
+                _pointCloudVisualizer.Set(this);
+                ob = Resources.Load<GameObject>("PlaneVisualizer");
+                obj = GameObject.Instantiate(ob);
+                obj.name = "PlaneVisualizer";
+                _arPlaneVisualizer = obj.AddComponent<ARPlaneVisualizer>();
+                _arPlaneVisualizer.Set(this);
+            }
+            if (sceneState == SceneState.SceneMesh)
+            {
+                var ob = Resources.Load<GameObject>("SceneMeshVisulizer");
+                obj = GameObject.Instantiate(ob);
+                obj.name = "ARSceneMeshVisulizer";
+                _arSceneVisulizer = obj.AddComponent<ARSceneMeshVisulizer>();
+                _arSceneVisulizer.Set(this);
+            }
         }
 
         private void Connect(string ip, int port)
