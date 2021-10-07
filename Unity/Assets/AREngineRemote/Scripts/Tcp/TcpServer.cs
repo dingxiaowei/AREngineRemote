@@ -55,6 +55,8 @@ namespace HuaweiAREngineRemote
                 prefab = "ARSceneDevice";
             else if (sceneState == SceneState.Hand)
                 prefab = "ARHandDevice";
+            else if (sceneState == SceneState.Face)
+                prefab = "ARFaceDevice";
             var obj = Resources.Load<GameObject>(prefab);
             var go = GameObject.Instantiate(obj);
             if (sceneState == SceneState.World)
@@ -95,6 +97,9 @@ namespace HuaweiAREngineRemote
                             break;
                         case SceneState.Hand:
                             AcquireHandBox();
+                            break;
+                        case SceneState.Face:
+                            AcquireFace();
                             break;
                     }
                     lastT = Time.time;
@@ -255,6 +260,41 @@ namespace HuaweiAREngineRemote
                     }
                 }
                 Send(TcpHead.Hand, offset);
+            }
+        }
+
+        private List<HuaweiARUnitySDK.ARFace> faces = new List<HuaweiARUnitySDK.ARFace>();
+
+        private void AcquireFace()
+        {
+            ARFrame.GetTrackables(faces, ARTrackableQueryFilter.ALL);
+            if (faces.Count > 0)
+            {
+                int offset = headLen;
+                var face = faces[0];
+                Pose pose = face.GetPose();
+                WriteVector3(pose.position, ref offset);
+                WriteVector3(pose.rotation.eulerAngles, ref offset);
+                var geometry = face.GetFaceGeometry();
+                var vertx = geometry.Vertices;
+                WriteInt32(vertx.Length, ref offset);
+                for (int i = 0; i < vertx.Length; i++)
+                {
+                    WriteVector3(vertx[i], ref offset);
+                }
+                var uv = geometry.TextureCoordinates;
+                WriteInt32(uv.Length, ref offset);
+                for (int i = 0; i < uv.Length; i++)
+                {
+                    WriteVector2(uv[i], ref offset);
+                }
+                var trigers = geometry.TriangleIndices;
+                WriteInt32(trigers.Length, ref offset);
+                for (int i = 0; i < trigers.Length; i++)
+                {
+                    WriteInt32(trigers[i], ref offset);
+                }
+                Send(TcpHead.Face, offset);
             }
         }
 

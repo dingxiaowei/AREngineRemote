@@ -75,6 +75,11 @@ public enum TcpHead
     /// hand
     /// </summary>
     Hand = 0x6,
+    
+    /// <summary>
+    /// face
+    /// </summary>
+    Face = 0x7,
 
     /// <summary>
     /// 放在最后

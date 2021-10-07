@@ -63,4 +63,13 @@ namespace HuaweiAREngineRemote
     {
         public ARHand[] hands;
     }
+
+    public class ARFace : VisualizerData
+    {
+        public Vector3 pos;
+        public Vector3 euler;
+        public Vector3[] vertices;
+        public Vector2[] uv;
+        public int[] triangles;
+    }
 }

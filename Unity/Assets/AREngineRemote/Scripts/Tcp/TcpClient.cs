@@ -17,6 +17,7 @@ namespace HuaweiAREngineRemote
         private ARPlaneVisualizer _arPlaneVisualizer;
         private ARSceneMeshVisulizer _arSceneVisualizer;
         private ARHandVisualizer _arHandVisualizer;
+        private ARFaceVisualizer _arFaceVisualizer;
 
         public TcpClient(string ip, int port, SceneState st, Action<string, TcpState> notify) : base(st)
         {
@@ -68,6 +69,14 @@ namespace HuaweiAREngineRemote
                 _arHandVisualizer = obj.AddComponent<ARHandVisualizer>();
                 _arHandVisualizer.Init();
             }
+            if (sceneState == SceneState.Face)
+            {
+                var ob = Resources.Load<GameObject>("FaceVisualizer");
+                obj = GameObject.Instantiate(ob);
+                obj.name = "FaceVisualizer";
+                _arFaceVisualizer = obj.AddComponent<ARFaceVisualizer>();
+                _arFaceVisualizer.Init();
+            }
         }
 
         private void Connect(string ip, int port)
@@ -115,6 +124,9 @@ namespace HuaweiAREngineRemote
                 case TcpHead.Hand:
                     _arHandVisualizer.ProcessData(recvBuf, ref offset);
                     break;
+                case TcpHead.Face:
+                    _arFaceVisualizer.ProcessData(recvBuf, ref offset);
+                    break;
                 case TcpHead.String:
                     var strRecMsg = Encoding.UTF8.GetString(recvBuf, headLen, length - headLen);
                     Debug.Log(sock.RemoteEndPoint + " " + DateTime.Now + "\n" + strRecMsg);
@@ -144,6 +156,9 @@ namespace HuaweiAREngineRemote
                     break;
                 case SceneState.Hand:
                     _arHandVisualizer.Update();
+                    break;
+                case SceneState.Face:
+                    _arFaceVisualizer.Update();
                     break;
             }
         }
