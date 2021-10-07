@@ -53,6 +53,8 @@ namespace HuaweiAREngineRemote
             string prefab = "ARWorldDevice";
             if (sceneState == SceneState.Scene)
                 prefab = "ARSceneDevice";
+            else if (sceneState == SceneState.Hand)
+                prefab = "ARHandDevice";
             var obj = Resources.Load<GameObject>(prefab);
             var go = GameObject.Instantiate(obj);
             if (sceneState == SceneState.World)
@@ -237,11 +239,19 @@ namespace HuaweiAREngineRemote
                 for (int i = 0; i < hands.Count; i++)
                 {
                     var hand = hands[i];
+                    int gest = hand.GetGestureType();
+                    WriteInt32(gest, ref offset);
+                    int handT = (int) hand.GetHandType();
+                    WriteInt32(handT, ref offset);
+                    int gestS = (int) hand.GetGestureCoordinateSystemType();
+                    WriteInt32(gestS, ref offset);
+                    int skeleS = (int) hand.GetSkeletonCoordinateSystemType();
+                    WriteInt32(skeleS, ref offset);
                     var boxes = hand.GetHandBox();
                     WriteInt32(boxes.Length, ref offset);
                     for (int j = 0; j < boxes.Length; j++)
                     {
-                        WriteVector3(boxes[i], ref offset);
+                        WriteVector3(boxes[j], ref offset);
                     }
                 }
                 Send(TcpHead.Hand, offset);

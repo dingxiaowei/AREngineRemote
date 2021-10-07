@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using HuaweiARUnitySDK;
 using UnityEngine;
 
 namespace HuaweiAREngineRemote
@@ -47,6 +48,10 @@ namespace HuaweiAREngineRemote
     public class ARHand
     {
         public Vector3[] handBox;
+        public int gestureType;
+        public HuaweiARUnitySDK.ARHand.HandType handType;
+        public ARCoordinateSystemType coordSystem;
+        public ARCoordinateSystemType skeletonSystem;
 
         public ARHand(int cnt)
         {
