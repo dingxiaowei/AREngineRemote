@@ -93,6 +93,9 @@ namespace HuaweiAREngineRemote
                         case SceneState.Scene:
                             AcquireScene();
                             break;
+                        case SceneState.Hand:
+                            AcquireHandBox();
+                            break;
                     }
                     lastT = Time.time;
                 }
@@ -146,7 +149,7 @@ namespace HuaweiAREngineRemote
                     {
                         WriteVector3(points[i], ref offset);
                     }
-                    SendWithHead(TcpHead.PointCloud, 28 + 12 * cnt);
+                    SendWithHead(TcpHead.PointCloud, 4 + 12 * cnt);
                 }
             }
         }
@@ -222,6 +225,50 @@ namespace HuaweiAREngineRemote
             }
         }
 
+        private List<HuaweiARUnitySDK.ARHand> hands = new List<HuaweiARUnitySDK.ARHand>();
+
+        private void AcquireHandBox()
+        {
+            hands.Clear();
+            ARFrame.GetTrackables(hands, ARTrackableQueryFilter.ALL);
+            if (hands.Count > 0)
+            {
+                int offset = headLen;
+                WriteInt32(hands.Count, ref offset);
+                for (int i = 0; i < hands.Count; i++)
+                {
+                    var hand = hands[i];
+                    var boxes = hand.GetHandBox();
+                    WriteInt32(boxes.Length, ref offset);
+                    for (int j = 0; j < boxes.Length; j++)
+                    {
+                        WriteVector3(boxes[i], ref offset);
+                    }
+                }
+                SendWithHead(TcpHead.Hand, offset - headLen);
+            }
+        }
+
+        private void AcquireCpuImage()
+        {
+            var image = ARFrame.AcquireCameraImageBytes();
+            int width = image.Width;
+            int height = image.Height;
+            int len = (int) (width * height * 1.5f);
+            int offset = headLen;
+            var transform = MainCamera.transform;
+            var pos = transform.position;
+            var angle = transform.eulerAngles;
+            WriteVector3(pos, ref offset);
+            WriteVector3(angle, ref offset);
+            WriteInt32(width, ref offset);
+            WriteInt32(height, ref offset);
+            WriteInt32(len, ref offset);
+            Marshal.Copy(image.Y, sendBuf, offset, len);
+            SendWithHead(TcpHead.Preview, len + 36);
+            image.Release();
+        }
+
         private void WriteVector2(Vector2 v, ref int offset)
         {
             int x = (int) (v.x * scale_point);
@@ -266,31 +313,6 @@ namespace HuaweiAREngineRemote
             WriteInt32(len, ref offset);
             Array.Copy(bytes, 0, sendBuf, offset, len);
             offset += len;
-        }
-
-        private void AcquireCpuImage()
-        {
-            var image = ARFrame.AcquireCameraImageBytes();
-            int width = image.Width;
-            int height = image.Height;
-            SendPreview(width, height, image.Y);
-            image.Release();
-        }
-
-        private void SendPreview(int width, int height, IntPtr ptr)
-        {
-            int len = (int) (width * height * 1.5f);
-            int offset = headLen;
-            var transform = MainCamera.transform;
-            var pos = transform.position;
-            var angle = transform.eulerAngles;
-            WriteVector3(pos, ref offset);
-            WriteVector3(angle, ref offset);
-            WriteInt32(width, ref offset);
-            WriteInt32(height, ref offset);
-            WriteInt32(len, ref offset);
-            Marshal.Copy(ptr, sendBuf, offset, len);
-            SendWithHead(TcpHead.Preview, len + 12);
         }
     }
 }

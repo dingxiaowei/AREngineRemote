@@ -12,6 +12,22 @@ namespace HuaweiAREngineRemote
 
         private List<LineRenderer> m_boxLineRenderers = new List<LineRenderer>();
 
+        protected override void OnProcess(byte[] recvBuf, ref int offset)
+        {
+            int cnt = Bytes2Int(recvBuf, ref offset);
+            ar_data.hands = new ARHand[cnt];
+            for (int i = 0; i < cnt; i++)
+            {
+                int len = Bytes2Int(recvBuf, ref offset);
+                ar_data.hands[i] = new ARHand(len);
+                for (int j = 0; j < len; j++)
+                {
+                    var v = RecvVector3(recvBuf, ref offset);
+                    ar_data.hands[i].handBox[j] = v;
+                }
+            }
+        }
+
         private LineRenderer AddLineRender()
         {
             var handBox = new GameObject("HandBox");

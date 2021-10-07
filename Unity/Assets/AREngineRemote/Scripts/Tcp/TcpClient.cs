@@ -16,6 +16,7 @@ namespace HuaweiAREngineRemote
         private PointCloudVisualizer _pointCloudVisualizer;
         private ARPlaneVisualizer _arPlaneVisualizer;
         private ARSceneMeshVisulizer _arSceneVisualizer;
+        private ARHandVisualizer _arHandVisualizer;
 
         public TcpClient(string ip, int port, SceneState st, Action<string, TcpState> notify) : base(st)
         {
@@ -47,7 +48,6 @@ namespace HuaweiAREngineRemote
                 obj.name = "PointCloudVisualizer";
                 _pointCloudVisualizer = obj.AddComponent<PointCloudVisualizer>();
                 _pointCloudVisualizer.Init();
-                
                 ob = Resources.Load<GameObject>("PlaneVisualizer");
                 obj = GameObject.Instantiate(ob);
                 obj.name = "PlaneVisualizer";
@@ -61,6 +61,12 @@ namespace HuaweiAREngineRemote
                 obj.name = "ARSceneMeshVisulizer";
                 _arSceneVisualizer = obj.AddComponent<ARSceneMeshVisulizer>();
                 _arSceneVisualizer.Init();
+            }
+            if (sceneState == SceneState.Hand)
+            {
+                obj = new GameObject("HandVisualizer");
+                _arHandVisualizer = obj.AddComponent<ARHandVisualizer>();
+                _arHandVisualizer.Init();
             }
         }
 
@@ -95,16 +101,19 @@ namespace HuaweiAREngineRemote
             switch (head)
             {
                 case TcpHead.Preview:
-                    _previewVisualizer.ProcessData(recvBuf,ref offset);
+                    _previewVisualizer.ProcessData(recvBuf, ref offset);
                     break;
                 case TcpHead.PointCloud:
                     _pointCloudVisualizer.ProcessData(recvBuf, ref offset);
                     break;
                 case TcpHead.Plane:
-                    _arPlaneVisualizer.ProcessData(recvBuf,ref offset);
+                    _arPlaneVisualizer.ProcessData(recvBuf, ref offset);
                     break;
                 case TcpHead.SceneMesh:
-                    _arSceneVisualizer.ProcessData(recvBuf,ref offset);
+                    _arSceneVisualizer.ProcessData(recvBuf, ref offset);
+                    break;
+                case TcpHead.Hand:
+                    _arHandVisualizer.ProcessData(recvBuf, ref offset);
                     break;
                 case TcpHead.String:
                     var strRecMsg = Encoding.UTF8.GetString(recvBuf, headLen, length - headLen);
@@ -132,6 +141,9 @@ namespace HuaweiAREngineRemote
                     break;
                 case SceneState.Scene:
                     _arSceneVisualizer.Update();
+                    break;
+                case SceneState.Hand:
+                    _arHandVisualizer.Update();
                     break;
             }
         }

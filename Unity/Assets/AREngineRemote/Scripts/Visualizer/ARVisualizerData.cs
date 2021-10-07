@@ -47,6 +47,11 @@ namespace HuaweiAREngineRemote
     public class ARHand
     {
         public Vector3[] handBox;
+
+        public ARHand(int cnt)
+        {
+            handBox = new Vector3[cnt];
+        }
     }
     
     public class ARHands : VisualizerData
