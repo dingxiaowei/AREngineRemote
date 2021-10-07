@@ -6,22 +6,30 @@ namespace HuaweiAREngineRemote
     public class AREngineRemote : MonoBehaviour
     {
         private TcpBase tcp;
-        
-        public SceneState state;
+        [SerializeField]
+        private SceneState state;
+        public const int ANDROID_PORT = 35001;
+        public const int HOST_PORT = 35002;
 
         private void Start()
         {
-            if (!Application.isEditor && tcp == null)
+#if UNITY_EDITOR
+            AdbForward();
+#else
+            if (tcp == null)
             {
-                tcp = new TcpServer("127.0.0.1", ADBExecutor.ANDROID_PORT, state, OnRecvMsg);
+                tcp = new TcpServer("127.0.0.1", ANDROID_PORT, state, OnRecvMsg);
             }
+#endif
         }
 
         private void Update()
         {
             tcp?.Update();
+#if UNITY_EDITOR
             if (Input.GetKeyUp(KeyCode.Space))
                 Connect();
+#endif
         }
 
         private void OnRecvMsg(string msg, TcpState st)
@@ -42,18 +50,19 @@ namespace HuaweiAREngineRemote
             }
         }
 
+#if UNITY_EDITOR
         [ContextMenu("adb forward")]
         private void AdbForward()
         {
             var executor = new ADBExecutor();
-            var device = executor.AdbDevice();
+            var device = executor.AdbDevice(); 
             executor.AdbSingleDevicePortForward(device);
         }
 
         [ContextMenu("connect")]
         private void Connect()
         {
-            tcp = new TcpClient("127.0.0.1", ADBExecutor.HOST_PORT, state, OnRecvMsg);
+            tcp = new TcpClient("127.0.0.1", HOST_PORT, state, OnRecvMsg);
         }
 
         [ContextMenu("close")]
@@ -61,25 +70,6 @@ namespace HuaweiAREngineRemote
         {
             tcp?.Close(true);
         }
-
-        [ContextMenu("point cloud")]
-        private void TestPointCloud()
-        {
-            var mesh = GetComponent<MeshFilter>().sharedMesh;
-            Vector3[] points = new Vector3[1];
-            int[] indexs = new int[1];
-            for (int i = 0; i < 1; i++)
-            {
-                for (int j = 0; j < 1; j++)
-                {
-                    int idx = i * 8 + j;
-                    points[idx] = new Vector3(i - 4, j - 4, 0);
-                    indexs[idx] = idx;
-                }
-            }
-            mesh.Clear();
-            mesh.vertices = points;
-            mesh.SetIndices(indexs, MeshTopology.Points, 0);
-        }
+#endif
     }
 }
