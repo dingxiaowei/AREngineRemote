@@ -54,9 +54,17 @@ namespace HuaweiAREngineRemote
         [ContextMenu("adb forward")]
         private void AdbForward()
         {
-            var executor = new ADBExecutor();
-            var device = executor.AdbDevice(); 
-            executor.AdbSingleDevicePortForward(device);
+            if (string.IsNullOrEmpty( ADBExecutor.AndroidNdkRoot))
+            {
+                const string tip = "not set android sdk in Preferences's External tools";
+                UnityEditor.EditorUtility.DisplayDialog("tip", tip, "ok");
+            }
+            else
+            {
+                var executor = new ADBExecutor();
+                var device = executor.AdbDevice(); 
+                executor.AdbSingleDevicePortForward(device);
+            }
         }
 
         [ContextMenu("connect")]
