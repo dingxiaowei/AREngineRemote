@@ -33,7 +33,7 @@ namespace HuaweiAREngineRemote
             }
         }
 
-        protected override void OnUpdate()
+        protected override void OnUpdateVisual()
         {
             if (ar_data.vertices.Length > 0)
             {

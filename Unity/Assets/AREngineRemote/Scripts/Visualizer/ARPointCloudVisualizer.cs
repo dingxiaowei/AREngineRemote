@@ -7,7 +7,6 @@ namespace HuaweiAREngineRemote
     public class PointCloudVisualizer : BaseVisualizer<AREnginePointCloud>
     {
         private Mesh pointCloudMesh;
-        private AREnginePointCloud ar_point = new AREnginePointCloud();
 
         protected override TcpHead head
         {
@@ -23,11 +22,11 @@ namespace HuaweiAREngineRemote
         protected override void OnProcess(byte[] recvBuf, ref int offset)
         {
             int cnt = Bytes2Int(recvBuf, ref offset);
-            ar_point.len = cnt;
-            Array.Copy(recvBuf, offset, ar_point.buf, 0, 12 * cnt);
+            ar_data.len = cnt;
+            Array.Copy(recvBuf, offset, ar_data.buf, 0, 12 * cnt);
         }
 
-        protected override void OnUpdate()
+        protected override void OnUpdateVisual()
         {
             int len = ar_data.len;
             if (len > 1)

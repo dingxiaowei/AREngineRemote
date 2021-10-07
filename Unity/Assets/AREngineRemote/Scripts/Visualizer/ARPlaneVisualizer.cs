@@ -53,7 +53,7 @@ namespace HuaweiAREngineRemote
             }
         }
 
-        protected override void OnUpdate()
+        protected override void OnUpdateVisual()
         {
             int len = ar_data.planes.Length;
             int cnt = filters.Count;
@@ -65,6 +65,7 @@ namespace HuaweiAREngineRemote
                     filters.Add(filter);
                 }
                 var p = ar_data.planes[i];
+                // Debug.Log("plane 3d: " + p.meshVertices3D.Count + " 2d: " + p.meshVertices2D.Count);
                 Vector3 planeNormal = p.pose.rotation * Vector3.up;
                 var render = filters[i].GetComponent<Renderer>();
                 render.material.SetVector(PlaneNormal, planeNormal);

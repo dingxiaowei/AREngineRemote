@@ -38,7 +38,7 @@ namespace HuaweiAREngineRemote
             Array.Copy(recvBuf, offset + y_len, ar_data.uv_buf, 0, uv_len);
         }
 
-        protected override void OnUpdate()
+        protected override void OnUpdateVisual()
         {
             if (texY == null)
             {

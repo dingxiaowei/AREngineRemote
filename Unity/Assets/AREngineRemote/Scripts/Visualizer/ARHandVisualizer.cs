@@ -42,7 +42,7 @@ namespace HuaweiAREngineRemote
             return boxLineRenderer;
         }
 
-        protected override void OnUpdate()
+        protected override void OnUpdateVisual()
         {
             while (ar_data.hands.Length > m_boxLineRenderers.Count)
             {

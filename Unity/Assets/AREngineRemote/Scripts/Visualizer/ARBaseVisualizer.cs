@@ -37,15 +37,9 @@ namespace HuaweiAREngineRemote
         {
             if (change)
             {
-                UpdateVisual(ar_data);
+                OnUpdateVisual();
                 change = false;
             }
-        }
-
-        public void UpdateVisual(T data)
-        {
-            ar_data = data;
-            OnUpdate();
         }
 
         public void ProcessData(byte[] recvBuf, ref int offset)
@@ -56,7 +50,7 @@ namespace HuaweiAREngineRemote
 
         protected virtual void OnProcess(byte[] recvBuf, ref int offset) { }
 
-        protected virtual void OnUpdate() { }
+        protected virtual void OnUpdateVisual() { }
 
         protected Quaternion RecvRot(byte[] buf, ref int offset)
         {

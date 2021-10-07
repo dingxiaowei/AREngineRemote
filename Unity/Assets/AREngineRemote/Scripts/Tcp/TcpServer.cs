@@ -19,7 +19,6 @@ namespace HuaweiAREngineRemote
         private TcpState state;
         private Thread rcvThread;
         private float lastT;
-
         private Camera camera;
 
         protected Camera MainCamera
@@ -44,7 +43,6 @@ namespace HuaweiAREngineRemote
             //将套接字的监听队列长度限制为1
             socketWatch.Listen(1);
             callback(" begin listening", TcpState.Connect);
-            //创建一个监听线程
             thread = new Thread(WatchConnecting);
             thread.IsBackground = true;
             thread.Start();
@@ -149,13 +147,13 @@ namespace HuaweiAREngineRemote
                     {
                         WriteVector3(points[i], ref offset);
                     }
-                    SendWithHead(TcpHead.PointCloud, 4 + 12 * cnt);
+                    Send(TcpHead.PointCloud, offset);
                 }
             }
         }
 
-        List<Vector3> meshVertices3D = new List<Vector3>();
-        List<Vector2> meshVertices2D = new List<Vector2>();
+        private List<Vector3> meshVertices3D = new List<Vector3>();
+        private List<Vector2> meshVertices2D = new List<Vector2>();
 
         private void AcquirePlanes()
         {
@@ -191,12 +189,13 @@ namespace HuaweiAREngineRemote
                     {
                         WriteVector2(meshVertices2D[j], ref offset);
                     }
+                    Debug.Log("plane 3d: " + meshVertices3D.Count + " 2d: " + meshVertices2D.Count);
                 }
                 WriteInt32(count, ref index);
             }
             if (count > 0)
             {
-                SendWithHead(TcpHead.Plane, offset - headLen);
+                Send(TcpHead.Plane, offset);
             }
         }
 
@@ -220,7 +219,7 @@ namespace HuaweiAREngineRemote
                     {
                         WriteInt32(trigers[i], ref offset);
                     }
-                    SendWithHead(TcpHead.SceneMesh, offset - headLen);
+                    Send(TcpHead.SceneMesh, offset);
                 }
             }
         }
@@ -245,7 +244,7 @@ namespace HuaweiAREngineRemote
                         WriteVector3(boxes[i], ref offset);
                     }
                 }
-                SendWithHead(TcpHead.Hand, offset - headLen);
+                Send(TcpHead.Hand, offset);
             }
         }
 
@@ -265,7 +264,7 @@ namespace HuaweiAREngineRemote
             WriteInt32(height, ref offset);
             WriteInt32(len, ref offset);
             Marshal.Copy(image.Y, sendBuf, offset, len);
-            SendWithHead(TcpHead.Preview, len + 36);
+            Send(TcpHead.Preview, offset + len);
             image.Release();
         }
 

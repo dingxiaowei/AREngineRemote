@@ -35,9 +35,8 @@ namespace HuaweiAREngineRemote
             sock.Close();
         }
 
-        protected void SendWithHead(TcpHead head, int len)
+        protected void Send(TcpHead head, int packLen)
         {
-            int packLen = len + headLen;
             var blen = Int2Bytes(packLen);
             Array.Copy(blen, 0, sendBuf, 0, 4);
             sendBuf[4] = (byte) head;
@@ -71,7 +70,7 @@ namespace HuaweiAREngineRemote
 
         protected void NotifyQuit()
         {
-            SendWithHead(TcpHead.Quit, 0);
+            Send(TcpHead.Quit, headLen);
         }
 
         protected byte[] Int2Bytes(int value)
