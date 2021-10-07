@@ -41,19 +41,19 @@ namespace HuaweiAREngineRemote
             GameObject.Instantiate(obj);
             obj = new GameObject("PreviewStreamVisualizer");
             _previewVisualizer = obj.AddComponent<PreviewStreamVisualizer>();
-            _previewVisualizer.Init();
+            _previewVisualizer.Init(sceneState);
             if (sceneState == SceneState.World)
             {
                 var ob = Resources.Load<GameObject>("PointCloudVisualizer");
                 obj = GameObject.Instantiate(ob);
                 obj.name = "PointCloudVisualizer";
                 _pointCloudVisualizer = obj.AddComponent<PointCloudVisualizer>();
-                _pointCloudVisualizer.Init();
+                _pointCloudVisualizer.Init(sceneState);
                 ob = Resources.Load<GameObject>("PlaneVisualizer");
                 obj = GameObject.Instantiate(ob);
                 obj.name = "PlaneVisualizer";
                 _arPlaneVisualizer = obj.AddComponent<ARPlaneVisualizer>();
-                _arPlaneVisualizer.Init();
+                _arPlaneVisualizer.Init(sceneState);
             }
             if (sceneState == SceneState.Scene)
             {
@@ -61,13 +61,13 @@ namespace HuaweiAREngineRemote
                 obj = GameObject.Instantiate(ob);
                 obj.name = "ARSceneMeshVisulizer";
                 _arSceneVisualizer = obj.AddComponent<ARSceneMeshVisulizer>();
-                _arSceneVisualizer.Init();
+                _arSceneVisualizer.Init(sceneState);
             }
             if (sceneState == SceneState.Hand)
             {
                 obj = new GameObject("HandVisualizer");
                 _arHandVisualizer = obj.AddComponent<ARHandVisualizer>();
-                _arHandVisualizer.Init();
+                _arHandVisualizer.Init(sceneState);
             }
             if (sceneState == SceneState.Face)
             {
@@ -75,7 +75,7 @@ namespace HuaweiAREngineRemote
                 obj = GameObject.Instantiate(ob);
                 obj.name = "FaceVisualizer";
                 _arFaceVisualizer = obj.AddComponent<ARFaceVisualizer>();
-                _arFaceVisualizer.Init();
+                _arFaceVisualizer.Init(sceneState);
             }
         }
 

@@ -43,6 +43,8 @@
             sampler2D _UVTex;
             float4 _UVTex_ST;
 
+            float4 uv_st;
+
             v2f vert(appdata v)
             {
                 v2f o;
@@ -53,7 +55,9 @@
 
             fixed4 frag(v2f i) : SV_Target
             {
-                float2 uv2 = float2(1, 1) - i.uv;
+                //float2 uv2 = float2(1, 1) - i.uv;
+                // float2 uv2 = float2(i.uv.x, 1 - i.uv.y);
+                float2 uv2 = uv_st.xy + uv_st.zw * i.uv;
                 fixed4 ycol = tex2D(_YTex, uv2);
                 fixed4 uvcol = tex2D(_UVTex, uv2);
                 fixed4 col = tex2D(_MainTex, i.uv.yx);

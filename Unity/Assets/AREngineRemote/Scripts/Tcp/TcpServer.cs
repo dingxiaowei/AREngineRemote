@@ -196,7 +196,6 @@ namespace HuaweiAREngineRemote
                     {
                         WriteVector2(meshVertices2D[j], ref offset);
                     }
-                    Debug.Log("plane 3d: " + meshVertices3D.Count + " 2d: " + meshVertices2D.Count);
                 }
                 WriteInt32(count, ref index);
             }

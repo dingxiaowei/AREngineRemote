@@ -10,7 +10,7 @@ namespace HuaweiAREngineRemote
     {
         protected T ar_data;
         private Camera cam;
-
+        protected SceneState sceneState;
         public volatile bool change;
 
         protected abstract TcpHead head { get; }
@@ -25,8 +25,9 @@ namespace HuaweiAREngineRemote
             }
         }
 
-        public void Init()
+        public void Init(SceneState st)
         {
+            sceneState = st;
             ar_data = new T();
             OnInitial();
         }

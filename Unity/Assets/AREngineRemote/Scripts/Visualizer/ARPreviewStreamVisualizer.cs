@@ -8,6 +8,9 @@ namespace HuaweiAREngineRemote
     {
         private Texture2D texY, texUV;
         private BackGroundRenderer render;
+        private readonly Vector4 front_uv = new Vector4(0, 1, 1, -1);
+        private readonly Vector4 back_uv = new Vector4(1, 1, -1, -1);
+        private static readonly int UVSt = Shader.PropertyToID("uv_st");
 
         protected override TcpHead head
         {
@@ -17,6 +20,10 @@ namespace HuaweiAREngineRemote
         protected override void OnInitial()
         {
             render = FindObjectOfType<BackGroundRenderer>();
+            var uv_st = sceneState == SceneState.Face ?
+                front_uv :
+                back_uv;
+            render.BackGroundMaterial.SetVector(UVSt, uv_st);
         }
 
         protected override void OnProcess(byte[] recvBuf, ref int offset)
