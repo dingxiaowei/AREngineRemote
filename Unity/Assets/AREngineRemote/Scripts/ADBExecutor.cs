@@ -29,7 +29,12 @@ namespace HuaweiAREngineRemote
             pro.StartInfo.RedirectStandardOutput = true;
             pro.StartInfo.CreateNoWindow = true;
             pro.Start();
+#if UNITY_EDITOR_OSX
             pro.StandardInput.WriteLine(adb + " " + command);
+#else
+            pro.StandardInput.WriteLine("adb  " + command);
+#endif
+            
             pro.StandardInput.WriteLine("exit");
             pro.StandardInput.AutoFlush = true;
             string output = pro.StandardOutput.ReadToEnd();

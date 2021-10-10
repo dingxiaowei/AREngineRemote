@@ -83,12 +83,12 @@ namespace HuaweiAREngineRemote
             return src;
         }
 
-        protected int Bytes2Int(byte[] src)
+        public static int Bytes2Int(byte[] src)
         {
             return (src[0] & 0xFF) | ((src[1] & 0xFF) << 8) | ((src[2] & 0xFF) << 16) | ((src[3] & 0xFF) << 24);
         }
 
-        protected int Bytes2Int(byte[] src, ref int offset)
+        public static int Bytes2Int(byte[] src, ref int offset)
         {
             int v = (src[offset] & 0xFF) | ((src[offset + 1] & 0xFF) << 8) | ((src[offset + 2] & 0xFF) << 16) |
                     ((src[offset + 3] & 0xFF) << 24);

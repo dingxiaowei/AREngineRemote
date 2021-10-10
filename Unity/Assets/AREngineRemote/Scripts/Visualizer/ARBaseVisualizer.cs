@@ -56,28 +56,28 @@ namespace HuaweiAREngineRemote
         protected Quaternion RecvRot(byte[] buf, ref int offset)
         {
             float scale_point = TcpBase.scale_point;
-            float x = Bytes2Int(buf, ref offset) / (float) scale_point;
-            float y = Bytes2Int(buf, ref offset) / (float) scale_point;
-            float z = Bytes2Int(buf, ref offset) / (float) scale_point;
-            float w = Bytes2Int(buf, ref offset) / (float) scale_point;
+            float x = Bytes2Int(buf, ref offset) / scale_point;
+            float y = Bytes2Int(buf, ref offset) / scale_point;
+            float z = Bytes2Int(buf, ref offset) / scale_point;
+            float w = Bytes2Int(buf, ref offset) / scale_point;
             return new Quaternion(x, y, z, w);
         }
 
         public Vector3 RecvVector3(byte[] buf, ref int offset)
         {
             float scale_point = TcpBase.scale_point;
-            int x = Bytes2Int(buf, ref offset);
-            int y = Bytes2Int(buf, ref offset);
-            int z = Bytes2Int(buf, ref offset);
-            return new Vector3(x, y, z) / scale_point;
+            float x = Bytes2Int(buf, ref offset) / scale_point;
+            float y = Bytes2Int(buf, ref offset) / scale_point;
+            float z = Bytes2Int(buf, ref offset) / scale_point;
+            return new Vector3(x, y, z);
         }
 
         protected Vector2 RecvVector2(byte[] buf, ref int offset)
         {
             float scale_point = TcpBase.scale_point;
-            int x = Bytes2Int(buf, ref offset);
-            int y = Bytes2Int(buf, ref offset);
-            return new Vector2(x, y) / scale_point;
+            float x = Bytes2Int(buf, ref offset) / scale_point;
+            float y = Bytes2Int(buf, ref offset) / scale_point;
+            return new Vector2(x, y);
         }
 
         protected string RecvString(byte[] buf, ref int offset)
@@ -89,17 +89,9 @@ namespace HuaweiAREngineRemote
             return Encoding.Default.GetString(bytes);
         }
 
-        protected int Bytes2Int(byte[] src)
-        {
-            return (src[0] & 0xFF) | ((src[1] & 0xFF) << 8) | ((src[2] & 0xFF) << 16) | ((src[3] & 0xFF) << 24);
-        }
-
         protected int Bytes2Int(byte[] src, ref int offset)
         {
-            int v = (src[offset] & 0xFF) | ((src[offset + 1] & 0xFF) << 8) | ((src[offset + 2] & 0xFF) << 16) |
-                    ((src[offset + 3] & 0xFF) << 24);
-            offset += 4;
-            return v;
+            return TcpBase.Bytes2Int(src, ref offset);
         }
     }
 }

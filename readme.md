@@ -56,13 +56,17 @@ adb forward tcp:35002 tcp:35001
 
 2. 点云的绘制
 
+
 3. 平面检测
+
 
 4. 场景Mesh生成
 
 
 5. 手势识别
 
+
+6. 人脸识别
 
 
 ![](.image/hand.jpg)
